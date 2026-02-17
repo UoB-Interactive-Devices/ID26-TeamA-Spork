@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Magnetometer Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Magnetometer Data</h1>
+        <div class="controls">
+            <button id="btnConnect">🔌 Connect Arduino</button>
+            <button id="btnRecord" disabled>🔴 Record Data</button>
+            <button id="btnDownload" disabled>💾 Download CSV</button>
+        </div>
+        <canvas id="magChart"></canvas>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
