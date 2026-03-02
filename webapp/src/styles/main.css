@@ -1,0 +1,1409 @@
+/*  ────────────────────────────────────────────────────────
+    Spork — Global Styles
+    "A Little to the Left" aesthetic: warm, cosy, hand-drawn
+    ──────────────────────────────────────────────────────── */
+
+/* ── Custom Font: Buckwheat ────────────────────────────── */
+@font-face {
+  font-family: 'Buckwheat';
+  src: url('/assets/Buckwheat TC Sans Painted.otf') format('opentype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'galaxy';
+  src: url('/assets/GalaxieCopernicus-BookItalic.ttf') format('truetype');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+/* ── CSS Custom Properties (easy re-theming) ───────────── */
+:root {
+  /* Background tones */
+  --bg-deep:        #2b2520;
+  --bg-surface:     #3a322c;
+  --bg-card:        #4a403a;
+  --bg-card-hover:  #574c44;
+
+  /* Warm accent palette */
+  --accent-cream:   #f5e6d0;
+  --accent-warm:    #d4a574;
+  --accent-gold:    #c9944a;
+  --accent-rust:    #b87333;
+  --accent-sage:    #8faa7b;
+  --accent-rose:    #c47d7d;
+  --accent-sky:     #7da4b8;
+
+  /* Text colours */
+  --text-primary:   #f5e6d0;
+  --text-secondary: #bfa98a;
+  --text-muted:     #8a7a6a;
+
+  /* Functional */
+  --success:        #8faa7b;
+  --warning:        #d4a574;
+  --error:          #c47d7d;
+
+  /* Cup-fill gradient stops */
+  --cup-empty:      #4a403a;
+  --cup-fill-low:   #8faa7b;
+  --cup-fill-mid:   #c9944a;
+  --cup-fill-high:  #d4a574;
+
+  /* Shadows & glows */
+  --shadow-soft:    0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-lifted:  0 8px 32px rgba(0, 0, 0, 0.4);
+  --glow-warm:      0 0 20px rgba(212, 165, 116, 0.25);
+
+  /* Typography */
+  --font-display:   'galaxy', serif;  /* italic for headers & buttons */
+  --font-body:      'Buckwheat', sans-serif;  /* normal for body text */
+  --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+  --font-handwritten: 'galaxy', sans-serif;
+
+  /* Spacing scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+
+  /* Border radius — slightly imperfect / organic */
+  --radius-sm:  6px;
+  --radius-md:  12px;
+  --radius-lg:  20px;
+  --radius-pill: 999px;
+
+  /* Transition timings */
+  --ease-out-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast:  180ms;
+  --duration-mid:   350ms;
+  --duration-slow:  600ms;
+  --duration-page:  500ms;
+}
+
+/* ── Light Theme — "A Little to the Left" warm parchment ── */
+[data-theme="light"] {
+  /* Background tones */
+  --bg-deep:        #f0e8d8;
+  --bg-surface:     #e8dcc8;
+  --bg-card:        #e2d5c0;
+  --bg-card-hover:  #d9cbb4;
+
+  /* Warm accent palette */
+  --accent-cream:   #3d2e1e;
+  --accent-warm:    #c97a4a;
+  --accent-gold:    #b8863e;
+  --accent-rust:    #a86830;
+  --accent-sage:    #7a9e7e;
+  --accent-rose:    #c4727a;
+  --accent-sky:     #6b93a8;
+
+  /* Text colours */
+  --text-primary:   #3d2e1e;
+  --text-secondary: #7a6248;
+  --text-muted:     #9a8872;
+
+  /* Functional */
+  --success:        #7a9e7e;
+  --warning:        #c97a4a;
+  --error:          #c4727a;
+
+  /* Cup-fill gradient stops */
+  --cup-empty:      #e2d5c0;
+  --cup-fill-low:   #7a9e7e;
+  --cup-fill-mid:   #b8863e;
+  --cup-fill-high:  #c97a4a;
+
+  /* Shadows & glows — softer for light theme */
+  --shadow-soft:    0 4px 20px rgba(61, 46, 30, 0.1);
+  --shadow-lifted:  0 8px 32px rgba(61, 46, 30, 0.15);
+  --glow-warm:      0 0 20px rgba(201, 122, 74, 0.15);
+}
+
+/* ── Reset & Base ──────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  overflow: hidden;
+  /* Subtle paper-like texture — swap with image easily */
+  background-image: url('');
+  background-size: cover;
+}
+
+/* ── App Container ─────────────────────────────────────── */
+#app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ── Page Containers ───────────────────────────────────── */
+.page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  opacity: 0;
+  transform: translateY(16px) scale(0.98);
+  transition:
+    opacity var(--duration-page) var(--ease-out-soft),
+    transform var(--duration-page) var(--ease-out-soft);
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.page.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.page.exit {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.97);
+  pointer-events: none;
+}
+
+/* ── Typography ────────────────────────────────────────── */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--accent-cream);
+}
+
+h1 { font-size: 2.8rem; letter-spacing: -0.02em; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.3rem; }
+
+p {
+  font-family: var(--font-body);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 42ch;
+}
+
+.subtitle {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: var(--space-xs);
+}
+
+/* ── Buttons — feel like physical objects ──────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-handwritten);
+  font-size: 1.15rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--bg-deep);
+  /* background: var(--accent-warm); */
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,0.15);
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-out-soft),
+    background var(--duration-mid) var(--ease-out-soft);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-lifted), var(--glow-warm);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Button variants */
+.btn--primary   { color: var(--accent-warm); }
+.btn--sage      { color: var(--accent-sage); }
+.btn--rose      { color: var(--accent-rose); }
+.btn--sky       { background: var(--accent-sky);   color: var(--bg-deep); }
+.btn--gold      { background: var(--accent-gold);  color: var(--bg-deep); }
+.btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  box-shadow: none;
+  border: 2px solid var(--bg-card-hover);
+}
+.btn--ghost:hover {
+  background: var(--bg-card);
+  color: var(--accent-cream);
+  box-shadow: none;
+}
+
+.btn--small {
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.95rem;
+}
+
+.btn--large {
+  padding: var(--space-lg) var(--space-2xl);
+  font-size: 1.3rem;
+  border-radius: var(--radius-lg);
+}
+
+/* Icon slot inside buttons — swap background-image later */
+.btn-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(0,0,0,0.15);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+/* Named icon classes (for asset swapping) */
+.btn-play-icon   { /* background-image: url('/assets/icon-play.png'); */ }
+.btn-learn-icon  { /* background-image: url('/assets/icon-learn.png'); */ }
+.btn-create-icon { /* background-image: url('/assets/icon-create.png'); */ }
+.btn-back-icon   { /* background-image: url('/assets/icon-back.png'); */ }
+
+/* ── Cards — round select, prop select ─────────────────── */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-out-soft),
+    background var(--duration-mid) var(--ease-out-soft);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid rgba(245, 230, 208, 0.06);
+  pointer-events: none;
+}
+
+.card:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: var(--shadow-lifted);
+}
+
+.card:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.card__emoji {
+  font-size: 2.2rem;
+  margin-bottom: var(--space-sm);
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--accent-cream);
+  margin-bottom: var(--space-xs);
+}
+
+.card__subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* ── Grid layouts ──────────────────────────────────────── */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-lg);
+  width: 100%;
+  max-width: 720px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.stack--lg { gap: var(--space-lg); }
+.stack--xl { gap: var(--space-xl); }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* ── Cup Fill Component ────────────────────────────────── */
+.cup {
+  position: relative;
+  width: 120px;
+  height: 160px;
+  border-radius: 12px 12px 24px 24px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  /* Swap with illustrated cup image */
+  /* background-image: url('/assets/cup.png'); */
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.cup__fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0%;
+  background: linear-gradient(
+    0deg,
+    var(--accent-sage) 0%,
+    var(--accent-gold) 50%,
+    var(--accent-warm) 100%
+  );
+  border-radius: 0 0 22px 22px;
+  transition: height var(--duration-slow) var(--ease-out-soft);
+}
+
+.cup__label {
+  position: absolute;
+  bottom: var(--space-sm);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--bg-deep);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* ── Motion Prompt Component ───────────────────────────── */
+.motion-prompt {
+  text-align: center;
+  padding: var(--space-lg);
+  animation: prompt-enter var(--duration-mid) var(--ease-spring) both;
+}
+
+.motion-prompt__emoji {
+  font-size: 3.5rem;
+  margin-bottom: var(--space-sm);
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+.motion-prompt__label {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--accent-cream);
+  margin-bottom: var(--space-xs);
+}
+
+.motion-prompt__desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.motion-prompt__timer {
+  margin-top: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  color: var(--accent-gold);
+}
+
+/* ── Feedback flash ────────────────────────────────────── */
+.feedback-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+}
+
+.feedback-flash.success {
+  background: radial-gradient(circle at center, rgba(143,170,123,0.25) 0%, transparent 70%);
+  animation: flash-in 500ms var(--ease-out-soft);
+}
+
+.feedback-flash.fail {
+  background: radial-gradient(circle at center, rgba(196,125,125,0.2) 0%, transparent 70%);
+  animation: flash-in 500ms var(--ease-out-soft);
+}
+
+/* ── Back Button (persistent) ──────────────────────────── */
+.back-btn {
+  position: absolute;
+  top: var(--space-lg);
+  left: var(--space-lg);
+  z-index: 10;
+}
+
+/* ── Connection Status ─────────────────────────────────── */
+.connection-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-rust);
+  display: inline-block;
+  margin-right: var(--space-xs);
+  transition: background var(--duration-mid);
+}
+
+.connection-dot.connected {
+  background: var(--accent-sage);
+  box-shadow: 0 0 8px var(--accent-sage);
+}
+
+/* ── BGM Picker (top-right floating) ───────────────────── */
+.bgm-picker {
+  position: relative;
+  z-index: 20;
+}
+
+.bgm-picker__toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition:
+    background var(--duration-mid) var(--ease-out-soft),
+    transform var(--duration-fast) var(--ease-spring),
+    color var(--duration-mid);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bgm-picker__toggle:hover {
+  background: var(--bg-card-hover);
+  color: var(--accent-cream);
+  transform: translateY(-1px);
+}
+
+.bgm-picker__toggle:active {
+  transform: translateY(1px) scale(0.97);
+}
+
+.bgm-picker__note {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.bgm-picker__panel {
+  position: absolute;
+  top: calc(100% + var(--space-sm));
+  right: 0;
+  width: 240px;
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: var(--shadow-lifted);
+  animation: bgm-panel-enter var(--duration-mid) var(--ease-spring) both;
+  z-index: 25;
+}
+
+.bgm-picker__panel::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid rgba(245, 230, 208, 0.06);
+  pointer-events: none;
+}
+
+.bgm-picker__panel.hidden {
+  display: none;
+}
+
+.bgm-picker__panel-title {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--accent-cream);
+  margin-bottom: var(--space-sm);
+  text-align: center;
+}
+
+.bgm-picker__track-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xs);
+  margin-bottom: var(--space-md);
+}
+
+.bgm-picker__track {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--radius-md);
+  cursor: pointer;
+  transition:
+    background var(--duration-fast),
+    transform var(--duration-fast) var(--ease-spring);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.bgm-picker__track:hover {
+  background: var(--bg-card-hover);
+  transform: translateX(2px);
+}
+
+.bgm-picker__track:active {
+  transform: scale(0.98);
+}
+
+.bgm-picker__track.active {
+  background: rgba(143, 170, 123, 0.15);
+}
+
+.bgm-picker__track.active .bgm-picker__track-name {
+  color: var(--accent-sage);
+}
+
+.bgm-picker__track-icon {
+  font-size: 1rem;
+  width: 22px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.bgm-picker__track-name {
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  transition: color var(--duration-mid);
+}
+
+.bgm-picker__volume-row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding-top: var(--space-sm);
+  border-top: 1px solid rgba(245, 230, 208, 0.06);
+}
+
+.bgm-picker__vol-icon {
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.bgm-picker__volume {
+  flex: 1;
+  -webkit-appearance: none;
+  appearance: none;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--bg-surface);
+  outline: none;
+  cursor: pointer;
+}
+
+.bgm-picker__volume::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--accent-warm);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+  transition: transform var(--duration-fast) var(--ease-spring);
+}
+
+.bgm-picker__volume::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+
+.bgm-picker__volume::-moz-range-thumb {
+  width: 14px;
+  height: 14px;
+  border: none;
+  border-radius: 50%;
+  background: var(--accent-warm);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  cursor: pointer;
+}
+
+@keyframes bgm-panel-enter {
+  from {
+    opacity: 0;
+    transform: translateY(-15px) scale(0.95) !important;
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* ── Arduino Connection Button (bottom-left) ───────────── */
+.arduino-status-btn {
+  position: absolute;
+  bottom: var(--space-lg);
+  left: var(--space-lg);
+  z-index: 10;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition:
+    background var(--duration-mid) var(--ease-out-soft),
+    transform var(--duration-fast) var(--ease-spring),
+    color var(--duration-mid);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.arduino-status-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-secondary);
+  transform: translateY(-1px);
+}
+
+.arduino-status-btn:active {
+  transform: translateY(1px) scale(0.97);
+}
+
+.arduino-status-btn__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  transition:
+    background var(--duration-mid),
+    box-shadow var(--duration-mid);
+}
+
+.arduino-status-btn__dot.dot--connecting {
+  background: var(--accent-gold);
+  box-shadow: 0 0 6px var(--accent-gold);
+  animation: dot-pulse 1.5s ease-in-out infinite;
+}
+
+.arduino-status-btn__dot.dot--connected {
+  background: var(--accent-sage);
+  box-shadow: 0 0 8px var(--accent-sage);
+}
+
+.arduino-status-btn__dot.dot--disconnected {
+  background: var(--accent-rose);
+  box-shadow: none;
+}
+
+.arduino-status-btn__label {
+  line-height: 1;
+}
+
+@keyframes dot-pulse {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.4; }
+}
+
+/* ── Menu Split Layout ("A Little to the Left" style) ──── */
+.menu-split {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 2;
+}
+
+.menu-split__left {
+    flex: 0 0 65%;
+    display: flex;
+    align-items: flex-end;
+    justify-content: flex-start;
+    position: relative;
+    overflow: visible;
+    margin-bottom: 2em;
+    margin-left: 2em;
+}
+
+.menu-split__right {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;           /* push content to the right        */
+  justify-content: center;
+  gap: var(--space-xl);
+  padding: var(--space-2xl) var(--space-2xl) var(--space-2xl) var(--space-xl);
+  padding-right: 3em;
+}
+
+/* ── Menu Illustration (left-side props GIF) ───────────── */
+.menu-illustration {
+  width: 130%;                     /* 30% larger than column           */
+  max-width: 1000px;               /* ← increased max width            */
+  pointer-events: none;
+  padding: 0;
+  margin-bottom: -20px;            /* overlap bottom edge slightly     */
+}
+
+.menu-illustration__img {
+  display: block;
+  width: 100%;                     /* scales to container width        */
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 -4px 20px rgba(0,0,0,0.4));
+  transition: opacity var(--duration-mid) var(--ease-out-soft);
+}
+
+/* ── Right-side menu content alignment ─────────────────── */
+.menu-split__right .menu-logo-placeholder {
+  text-align: right;
+  margin-right: 3.5em;
+}
+
+.menu-logo-img {
+  display: block;
+  width: 120px;
+  height: auto;
+  margin-bottom: var(--space-sm);
+  margin-left: auto;
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
+  transition: transform var(--duration-mid) var(--ease-spring);
+}
+
+.menu-logo-img:hover {
+  transform: scale(1.05) translateY(-2px);
+}
+
+.menu-split__right .stack {
+  align-items: flex-end;           /* buttons align right              */
+}
+
+/* ── Menu buttons: transparent, text-only, slide-left hover ── */
+#main-menu .btn--primary,
+#main-menu .btn--sage,
+#main-menu .btn--rose {
+  background: transparent;
+  box-shadow: none;
+  transition: transform 0.2s ease;
+}
+
+#main-menu .btn--primary::after,
+#main-menu .btn--sage::after,
+#main-menu .btn--rose::after {
+  display: none;                   /* remove gradient overlay          */
+}
+
+#main-menu .btn--primary:hover,
+#main-menu .btn--sage:hover,
+#main-menu .btn--rose:hover {
+  transform: translateX(-17px) !important;
+  background: transparent;
+  box-shadow: none;
+}
+
+#main-menu .btn--primary:active,
+#main-menu .btn--sage:active,
+#main-menu .btn--rose:active {
+  transform: translateX(-4px);
+  box-shadow: none;
+}
+
+/* Hide icon squares on menu buttons */
+#main-menu .btn-icon {
+  display: none;
+}
+
+/* ── Responsive: stack vertically on narrow screens ────── */
+@media (max-width: 768px) {
+  .menu-split {
+    flex-direction: column;
+  }
+  .menu-split__left {
+    flex: 0 0 auto;
+    max-height: 45vh;
+  }
+  .menu-illustration {
+    width: 100%;
+  }
+  .menu-split__right {
+    align-items: center;
+    text-align: center;
+    padding: var(--space-lg);
+  }
+  .menu-split__right .menu-logo-placeholder {
+    text-align: center;
+  }
+  .menu-split__right .stack {
+    align-items: center;
+  }
+}
+
+/* ── Named background classes (for asset swap) ─────────── */
+/* ── Named background classes (for asset swap) ──────────── */
+.menu-bg {
+  /* background-image: url('/assets/menu-bg.jpg'); */
+  background-size: cover;
+  background-position: center;
+}
+
+.level-select-bg {
+  /* background-image: url('/assets/level-select-bg.jpg'); */
+}
+
+.tutorial-bg {
+  /* background-image: url('/assets/tutorial-bg.jpg'); */
+}
+
+.choreograph-bg {
+  /* background-image: url('/assets/choreograph-bg.jpg'); */
+}
+
+/* ── Play Page — game rounds with kitchen background ── */
+#play {
+  background-image: url('/assets/bg.PNG');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+#play::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(12, 10, 8, 0.12) 0%,
+    rgba(12, 10, 8, 0.16) 45%,
+    rgba(12, 10, 8, 0.28) 100%
+  );
+  pointer-events: none;
+}
+
+.play-round {
+  position: relative;
+  z-index: 1;
+  width: min(760px, 100%);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-top: clamp(5.5rem, 10vh, 7rem);
+}
+
+#play-title {
+  text-align: center;
+  color: #fff8eb;
+  text-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+}
+
+.play-progress-dots {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: var(--space-sm);
+}
+
+.play-progress-dot {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.28);
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.16);
+  transition: transform 180ms var(--ease-spring), background var(--duration-mid);
+}
+
+.play-progress-dot.is-complete {
+  background: #fff6df;
+  transform: scale(1.1);
+}
+
+.play-stamps {
+  margin-top: var(--space-md);
+  min-height: 180px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(0.5rem, 1.8vw, 0.95rem);
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+.play-stamp {
+  width: clamp(92px, 13vw, 112px);
+  aspect-ratio: 0.84;
+  padding: 8px;
+  border-radius: 14px;
+  border: 3px dashed rgba(222, 222, 222, 0.88);
+  background: rgba(248, 246, 240, 0.9);
+  box-shadow: 0 7px 18px rgba(0, 0, 0, 0.2);
+  transition:
+    border-color var(--duration-mid) var(--ease-out-soft),
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-mid) var(--ease-out-soft);
+}
+
+.play-stamp:nth-child(1) { transform: rotate(-12deg) translateY(18px); }
+.play-stamp:nth-child(2) { transform: rotate(-5deg) translateY(-8px); }
+.play-stamp:nth-child(3) { transform: rotate(3deg) translateY(2px); }
+.play-stamp:nth-child(4) { transform: rotate(-3deg) translateY(-6px); }
+.play-stamp:nth-child(5) { transform: rotate(8deg) translateY(12px); }
+.play-stamp:nth-child(6) { transform: rotate(-7deg) translateY(-4px); }
+.play-stamp:nth-child(7) { transform: rotate(11deg) translateY(14px); }
+
+.play-stamp__inner {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  background: var(--stamp-color, #8a8a8a);
+  filter: grayscale(100%) brightness(0.6);
+  transition: filter var(--duration-mid), transform 220ms var(--ease-spring);
+}
+
+.stamp-1 { --stamp-color: #8faa6e; }  /* olive green */
+.stamp-2 { --stamp-color: #c94040; }  /* deep red */
+.stamp-3 { --stamp-color: #e8c84a; }  /* warm yellow */
+.stamp-4 { --stamp-color: #7da4b8; }  /* sky blue */
+.stamp-5 { --stamp-color: #d4a574; }  /* warm tan */
+.stamp-6 { --stamp-color: #c47d7d; }  /* rose */
+.stamp-7 { --stamp-color: #b87333; }  /* rust */
+
+.play-stamp.is-active {
+  border-color: rgba(255, 248, 233, 0.98);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(255, 248, 233, 0.24);
+}
+
+.play-stamp.is-active .play-stamp__inner {
+  filter: grayscale(0%) brightness(1);
+}
+
+.play-stamp.pop .play-stamp__inner {
+  animation: stamp-pop 0.3s ease;
+}
+
+.play-stamp.is-wrong {
+  border-color: #d16060;
+  animation: stamp-shake 0.3s ease;
+}
+
+.play-cup-wrap {
+  margin-top: auto;
+  padding-bottom: clamp(0.4rem, 2vh, 1.25rem);
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+#play .cup {
+  width: clamp(170px, 22vw, 220px);
+  height: clamp(235px, 34vh, 310px);
+  border-radius: 30px 30px 48px 48px;
+  border: 2px solid rgba(245, 230, 208, 0.28);
+  background: linear-gradient(180deg, rgba(255, 249, 236, 0.22) 0%, rgba(255, 249, 236, 0.08) 100%);
+  backdrop-filter: blur(2px);
+}
+
+#play .cup__fill {
+  background: #5c3d2e;
+  border-radius: 0 0 44px 44px;
+  transition: height 0.6s ease;
+}
+
+#play .cup__label {
+  bottom: 10px;
+  color: #fff8eb;
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+}
+
+.play-result-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(22, 18, 15, 0.66);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(3px);
+}
+
+/* ── Keyframes ─────────────────────────────────────────── */
+@keyframes stamp-pop {
+  0% { transform: scale(1); }
+  45% { transform: scale(1.1); }
+  100% { transform: scale(1); }
+}
+
+@keyframes stamp-shake {
+  0% { transform: translateX(0); }
+  25% { transform: translateX(-6px); }
+  50% { transform: translateX(5px); }
+  75% { transform: translateX(-4px); }
+  100% { transform: translateX(0); }
+}
+
+@keyframes prompt-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gentle-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+@keyframes flash-in {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger children for nice enter effect */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in-up var(--duration-mid) var(--ease-out-soft) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 400ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 480ms; }
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.4rem; }
+
+  .btn--large {
+    padding: var(--space-md) var(--space-lg);
+    font-size: 1.1rem;
+  }
+
+  .grid-3 {
+    grid-template-columns: 1fr;
+    max-width: 320px;
+  }
+
+  .cup {
+    width: 90px;
+    height: 120px;
+  }
+}
+
+/* ── Scrollable page content ───────────────────────────── */
+.page-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 100%;
+  width: 100%;
+}
+
+/* Custom scrollbar — subtle */
+.page-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.page-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.page-scroll::-webkit-scrollbar-thumb {
+  background: var(--bg-card-hover);
+  border-radius: var(--radius-pill);
+}
+
+/* ── Utility ───────────────────────────────────────────── */
+.hidden { display: none !important; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+
+/* Google Fonts import — loaded via <link> in index.html
+   These are the intended fonts:
+   - Playfair Display (display headings)
+   - Nunito (body text)
+*/
+
+/* ═══════════════════════════════════════════════════════════
+   LIGHT THEME — component overrides
+   ═══════════════════════════════════════════════════════════ */
+
+/* Subtle paper texture overlay on body */
+[data-theme="light"] body {
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 256px;
+}
+
+/* Headings use deep brown in light mode */
+[data-theme="light"] h1,
+[data-theme="light"] h2,
+[data-theme="light"] h3 {
+  color: var(--text-primary);
+}
+
+/* Cards get warm sandy background with subtle brown border */
+[data-theme="light"] .card::before {
+  border-color: rgba(61, 46, 30, 0.08);
+}
+
+[data-theme="light"] .card__title {
+  color: var(--text-primary);
+}
+
+/* BGM picker & Music toggle — warm brown pill in light mode */
+[data-theme="light"] .bgm-picker__toggle {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-soft);
+}
+
+[data-theme="light"] .bgm-picker__toggle:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .bgm-picker__panel {
+  background: var(--bg-card);
+  box-shadow: var(--shadow-lifted);
+}
+
+[data-theme="light"] .bgm-picker__panel::before {
+  border-color: rgba(61, 46, 30, 0.08);
+}
+
+[data-theme="light"] .bgm-picker__panel-title {
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .bgm-picker__track:hover {
+  background: var(--bg-card-hover);
+}
+
+[data-theme="light"] .bgm-picker__track.active {
+  background: rgba(122, 158, 126, 0.15);
+}
+
+[data-theme="light"] .bgm-picker__volume {
+  background: var(--bg-surface);
+}
+
+[data-theme="light"] .bgm-picker__volume::-webkit-slider-thumb {
+  background: var(--accent-warm);
+  box-shadow: 0 1px 4px rgba(61, 46, 30, 0.2);
+}
+
+[data-theme="light"] .bgm-picker__volume-row {
+  border-top-color: rgba(61, 46, 30, 0.08);
+}
+
+/* Theme toggle button — same style as Music button */
+.theme-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  border: none;
+  border-radius: var(--radius-pill);
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: var(--shadow-soft);
+  transition:
+    background var(--duration-mid) var(--ease-out-soft),
+    transform var(--duration-fast) var(--ease-spring),
+    color var(--duration-mid);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.theme-toggle:hover {
+  background: var(--bg-card-hover);
+  color: var(--accent-cream);
+  transform: translateY(-1px);
+}
+
+[data-theme="light"] .theme-toggle:hover {
+  color: var(--text-primary);
+}
+
+.theme-toggle:active {
+  transform: translateY(1px) scale(0.97);
+}
+
+.theme-toggle__icon {
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+/* Top-right controls container */
+.top-right-controls {
+  position: absolute;
+  top: var(--space-lg);
+  right: var(--space-lg);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+/* Arduino status btn in light mode */
+[data-theme="light"] .arduino-status-btn {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  box-shadow: var(--shadow-soft);
+}
+
+[data-theme="light"] .arduino-status-btn:hover {
+  background: var(--bg-card-hover);
+  color: var(--text-primary);
+}
+
+[data-theme="light"] .arduino-status-btn__dot.dot--connecting {
+  background: var(--accent-warm);
+  box-shadow: 0 0 6px var(--accent-warm);
+}
+
+/* Menu buttons in light mode — faint warm bg tint on hover */
+[data-theme="light"] #main-menu .btn--primary { color: var(--accent-warm); }
+[data-theme="light"] #main-menu .btn--sage    { color: var(--accent-sage); }
+[data-theme="light"] #main-menu .btn--rose    { color: var(--accent-rose); }
+
+[data-theme="light"] #main-menu .btn--primary:hover,
+[data-theme="light"] #main-menu .btn--sage:hover,
+[data-theme="light"] #main-menu .btn--rose:hover {
+  background: rgba(61, 46, 30, 0.06);
+}
+
+/* Ghost buttons (back, etc.) in light mode */
+[data-theme="light"] .btn--ghost {
+  border-color: rgba(61, 46, 30, 0.12);
+  color: var(--text-secondary);
+}
+
+[data-theme="light"] .btn--ghost:hover {
+  background: var(--bg-card);
+  color: var(--text-primary);
+}
+
+/* Illustration drop shadow — lighter in light mode */
+[data-theme="light"] .menu-illustration__img {
+  filter: drop-shadow(0 -4px 20px rgba(61, 46, 30, 0.15));
+}
+
+/* Scrollbar in light mode */
+[data-theme="light"] .page-scroll::-webkit-scrollbar-thumb {
+  background: var(--bg-card-hover);
+}
+
+/* Smooth transition between themes */
+body,
+.page,
+.btn,
+.card,
+.bgm-picker__toggle,
+.bgm-picker__panel,
+.arduino-status-btn,
+.theme-toggle {
+  transition-property: background-color, color, box-shadow, border-color;
+  transition-duration: var(--duration-mid);
+  transition-timing-function: var(--ease-out-soft);
+}

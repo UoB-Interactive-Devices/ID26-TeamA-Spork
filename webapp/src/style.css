@@ -1,0 +1,375 @@
+/* ═══════════════════════════════════════════
+   Spork — Cozy Motion Brewing Game Styles
+   ═══════════════════════════════════════════ */
+
+*, *::before, *::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --bg-dark: #12100E;
+  --bg-mid: #1A1612;
+  --bg-card: #2A2520;
+  --bg-highlight: #3A3530;
+  --text-primary: #E8D5B7;
+  --text-secondary: #A89279;
+  --text-muted: #6B6560;
+  --accent-green: #6B8F71;
+  --accent-gold: #C4A35A;
+  --accent-red: #C25450;
+  --accent-blue: #36a2eb;
+  --font: 'Segoe UI', system-ui, -apple-system, sans-serif;
+}
+
+html, body {
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg-dark);
+  color: var(--text-primary);
+  font-family: var(--font);
+}
+
+/* ── Layout ────────────────────────────────── */
+
+#app {
+  display: grid;
+  grid-template-rows: 48px 1fr auto;
+  grid-template-columns: 1fr;
+  height: 100vh;
+  position: relative;
+}
+
+/* ── Toolbar ───────────────────────────────── */
+
+#toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--bg-mid);
+  border-bottom: 1px solid var(--bg-highlight);
+  z-index: 100;
+}
+
+.brand {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-primary);
+  letter-spacing: 0.5px;
+}
+
+.toolbar-center {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 12px;
+}
+
+.toolbar-right label {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+}
+
+/* ── Buttons ───────────────────────────────── */
+
+button {
+  font-family: var(--font);
+  cursor: pointer;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 8px 16px;
+  transition: all 0.2s ease;
+}
+
+button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.btn-connect {
+  background: var(--accent-green);
+  color: #fff;
+}
+.btn-connect:hover:not(:disabled) {
+  background: #7DA785;
+}
+
+.btn-tool {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+}
+.btn-tool:hover {
+  background: var(--bg-highlight);
+}
+
+.btn-primary {
+  background: var(--accent-green);
+  color: #fff;
+  padding: 12px 28px;
+  font-size: 15px;
+  border-radius: 8px;
+}
+.btn-primary:hover:not(:disabled) {
+  background: #7DA785;
+  transform: translateY(-1px);
+}
+
+.btn-secondary {
+  background: var(--bg-card);
+  color: var(--text-secondary);
+  padding: 10px 20px;
+  font-size: 14px;
+}
+.btn-secondary:hover {
+  background: var(--bg-highlight);
+}
+
+.btn-danger {
+  background: var(--accent-red);
+  color: #fff;
+  padding: 12px 24px;
+  font-size: 14px;
+}
+.btn-danger:hover {
+  background: #D46A66;
+}
+
+/* ── Slider ────────────────────────────────── */
+
+.slider-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--bg-card);
+  padding: 4px 12px;
+  border-radius: 6px;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+.slider-group input[type="range"] {
+  width: 80px;
+  cursor: pointer;
+  accent-color: var(--accent-green);
+}
+
+#sensitivity-val {
+  color: var(--accent-green);
+  font-weight: 700;
+  min-width: 32px;
+}
+
+/* ── Game Canvas ───────────────────────────── */
+
+#game-canvas {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background: var(--bg-dark);
+}
+
+/* ── Chart Panel ───────────────────────────── */
+
+.chart-panel {
+  height: 140px;
+  background: var(--bg-mid);
+  border-top: 1px solid var(--bg-highlight);
+  padding: 8px 12px;
+  transition: height 0.3s ease;
+}
+
+.chart-panel.hidden {
+  height: 0;
+  padding: 0;
+  overflow: hidden;
+}
+
+#data-chart {
+  width: 100%;
+  height: 100%;
+}
+
+/* ── Overlay ───────────────────────────────── */
+
+#overlay {
+  position: absolute;
+  bottom: 160px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 50;
+  pointer-events: none;
+}
+
+#overlay > * {
+  pointer-events: auto;
+}
+
+.menu-panel,
+.tutorial-panel,
+.result-panel,
+.creative-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 28px;
+  background: rgba(26, 22, 18, 0.92);
+  backdrop-filter: blur(10px);
+  border: 1px solid var(--bg-highlight);
+  border-radius: 12px;
+  min-width: 300px;
+}
+
+.menu-panel h3 {
+  color: var(--text-secondary);
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin-bottom: 4px;
+}
+
+/* ── Level Grid ────────────────────────────── */
+
+.level-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+.btn-level {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 14px 18px;
+  background: var(--bg-card);
+  border-radius: 8px;
+  text-align: left;
+  position: relative;
+}
+
+.btn-level:hover:not(:disabled) {
+  background: var(--bg-highlight);
+  transform: translateX(2px);
+}
+
+.btn-level.completed {
+  border-left: 3px solid var(--accent-green);
+}
+
+.btn-level.locked {
+  opacity: 0.4;
+}
+
+.level-num {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--bg-highlight);
+  color: var(--text-primary);
+  font-weight: 700;
+  font-size: 14px;
+  flex-shrink: 0;
+}
+
+.level-name {
+  color: var(--text-primary);
+  font-size: 14px;
+}
+
+.check {
+  margin-left: auto;
+  color: var(--accent-green);
+  font-size: 16px;
+}
+
+.lock {
+  margin-left: auto;
+  font-size: 14px;
+}
+
+.btn-creative {
+  width: 100%;
+  padding: 12px;
+  background: var(--bg-card);
+  color: var(--accent-gold);
+  font-size: 14px;
+  border: 1px dashed var(--accent-gold);
+  border-radius: 8px;
+  margin-top: 4px;
+}
+
+.btn-creative:hover {
+  background: rgba(196, 163, 90, 0.1);
+}
+
+.hint {
+  color: var(--text-muted);
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* ── Sidebar ───────────────────────────────── */
+
+#sidebar {
+  display: none; /* reserved for future use */
+}
+
+/* ── Toast Notifications ───────────────────── */
+
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(20px);
+  background: var(--bg-card);
+  color: var(--text-primary);
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  opacity: 0;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  border: 1px solid var(--bg-highlight);
+  pointer-events: none;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ── Responsive ────────────────────────────── */
+
+@media (max-width: 600px) {
+  .toolbar-center {
+    gap: 6px;
+  }
+  .slider-group {
+    display: none;
+  }
+  .brand {
+    font-size: 15px;
+  }
+  .menu-panel {
+    min-width: auto;
+    width: 90vw;
+  }
+}
