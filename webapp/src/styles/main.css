@@ -943,7 +943,7 @@ p {
 .play-round {
   position: relative;
   z-index: 1;
-  width: min(760px, 100%);
+  width: min(900px, 100%);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -1048,7 +1048,7 @@ p {
 }
 
 .play-cup-wrap {
-  margin-top: auto;
+  margin-top: 6em;
   padding-bottom: clamp(0.4rem, 2vh, 1.25rem);
   width: 100%;
   display: flex;
@@ -1090,7 +1090,134 @@ p {
   backdrop-filter: blur(3px);
 }
 
+/* ── Grinder Tutorial Animation ────────────────────────── */
+.grinder-tutorial {
+  width: 100%;
+  background-color: #f5e6a3;
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: background-color 0.4s ease;
+  box-shadow: var(--shadow-soft);
+}
+
+.grinder-tutorial.success {
+  background-color: #8faa6e;
+}
+
+.grinder-tutorial.wrong {
+  background-color: #e8a0a0;
+  animation: grinder-flash 0.3s ease;
+}
+
+.grinder-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.grinder-instruction {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: #3d2e1e;
+  margin: 0;
+  font-weight: 600;
+}
+
+.grinder-container {
+  position: relative;
+  width: clamp(200px, 50vw, 400px);
+  height: clamp(210px, 52.5vw, 420px);
+  margin: var(--space-md) 0;
+}
+
+.grinder-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  draggable: false;
+}
+
+.grinder-body {
+  z-index: 1;
+}
+
+.grinder-full {
+  z-index: 2;
+}
+
+.grinder-full.hidden {
+  display: none;
+}
+
+.grinder-handle {
+  z-index: 3;
+  transform-origin: 95% 50%;
+  transform-box: fill-box;
+  left: -45%;
+  transform: scaleX(-1);
+  /* top: 20%; */
+}
+
+.grinder-hint-arrow {
+  width: 60px;
+  height: 60px;
+  margin-top: var(--space-md);
+  border: 3px solid rgba(61, 46, 30, 0.3);
+  border-radius: 50%;
+  position: relative;
+  animation: grinder-circle-pulse 2s ease-in-out infinite;
+}
+
+.grinder-hint-arrow::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 0 solid transparent;
+  border-bottom: 12px solid rgba(61, 46, 30, 0.4);
+  top: 8px;
+  right: 8px;
+  animation: grinder-arrow-rotate 2s linear infinite;
+}
+
 /* ── Keyframes ─────────────────────────────────────────── */
+@keyframes grindIdle {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes grindSuccess {
+  0%   { transform: rotate(0deg); }
+  60%  { transform: rotate(580deg); }
+  100% { transform: rotate(720deg); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-8px); }
+  75%      { transform: translateX(8px); }
+}
+
+@keyframes grinder-flash {
+  0%   { background-color: #e8a0a0; }
+  100% { background-color: #f5e6a3; }
+}
+
+@keyframes grinder-circle-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(1.1); }
+}
+
+@keyframes grinder-arrow-rotate {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @keyframes stamp-pop {
   0% { transform: scale(1); }
   45% { transform: scale(1.1); }

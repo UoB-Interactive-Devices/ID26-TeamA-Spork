@@ -67,21 +67,23 @@ export type MotionType =
   | 'scoop'
   | 'squeeze'
   | 'up_down'
-  | 'w_motion';
+  | 'w_motion'
+  | 'pour';
 
 export const ALL_MOTIONS: MotionType[] = [
-  'circle', 'left_right', 'press_down', 'scoop', 'squeeze', 'up_down', 'w_motion',
+  'circle', 'left_right', 'press_down', 'scoop', 'squeeze', 'up_down', 'w_motion', 'pour'
 ];
 
 /** Human-friendly labels for each motion */
 export const MOTION_META: Record<MotionType, { label: string; emoji: string; description: string; prop: string }> = {
-  circle:     { label: 'Circle',     emoji: '🔄', description: 'Move in a circular stirring motion',     prop: 'Matcha Whisk' },
-  left_right: { label: 'Left-Right', emoji: '↔️',  description: 'Sway the tool side to side',             prop: 'Stirring Spoon' },
+  circle:     { label: 'Circle',     emoji: '🔄', description: 'Move in a circular motion to grind the coffee beans',     prop: 'Coffee Grinder' },
+  left_right: { label: 'Left-Right', emoji: '↔️',  description: 'Sway the tool side to side',             prop: 'Sieve' },
   press_down: { label: 'Press Down', emoji: '⬇️',  description: 'Press the tool firmly downward',         prop: 'French Press' },
-  scoop:      { label: 'Scoop',      emoji: '🥄', description: 'Scoop upward in a smooth arc',           prop: 'Sieve' },
-  squeeze:    { label: 'Squeeze',    emoji: '✊', description: 'Squeeze the tool firmly',                prop: 'Tea Bag' },
-  up_down:    { label: 'Up-Down',    emoji: '↕️',  description: 'Dip the tool up and down rhythmically',  prop: 'Kettle' },
-  w_motion:   { label: 'W-Motion',   emoji: '〰️', description: 'Trace a W shape with the tool',          prop: 'Pour-Over Kettle' },
+  scoop:      { label: 'Scoop',      emoji: '🥄', description: 'Scoop upward in a smooth arc',           prop: 'Spoon' },
+  squeeze:    { label: 'Squeeze',    emoji: '🧊', description: 'Squeeze to get some ice cubes',                prop: 'Tongs' },
+  up_down:    { label: 'Up-Down',    emoji: '🍵',  description: 'Dip the tool up and down rhythmically',  prop: 'Teabag' },
+  pour:   { label: 'Pour',   emoji: '🫖', description: 'Pour to get some water/milk to your drink',          prop: 'Pour' },
+  w_motion:   { label: 'W-Motion',   emoji: '🧋', description: 'Whisk to get a smooth texture',          prop: 'Whisk' },
 };
 
 /* ── Level Definitions ─────────────────────────────────── */
