@@ -2,47 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Motion Brewing Game</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Spork — Motion Brewing Game</title>
     <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>☕</text></svg>">
+
+    <!-- Google Fonts — warm, hand-drawn aesthetic -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700&family=Playfair+Display:wght@600;700&display=swap" rel="stylesheet">
   </head>
   <body>
-    <div id="app">
-      <!-- Top toolbar -->
-      <header id="toolbar">
-        <div class="toolbar-left">
-          <span class="brand">☕ Spork</span>
-        </div>
-        <div class="toolbar-center">
-          <button id="btn-connect" class="btn-connect">🔌 Connect Arduino</button>
-          <button id="btn-tare" class="btn-tool">⊙ Zero Sensor</button>
-          <div class="slider-group">
-            <label>Sensitivity</label>
-            <input type="range" id="sensitivity" min="0.5" max="10" step="0.1" value="2.5">
-            <span id="sensitivity-val">2.5x</span>
-          </div>
-        </div>
-        <div class="toolbar-right">
-          <div class="chart-toggle">
-            <label><input type="checkbox" id="show-chart" checked> Chart</label>
-          </div>
-        </div>
-      </header>
-
-      <!-- Main game canvas (full area) -->
-      <canvas id="game-canvas"></canvas>
-
-      <!-- Real-time chart (collapsible) -->
-      <div id="chart-panel" class="chart-panel">
-        <canvas id="data-chart"></canvas>
-      </div>
-
-      <!-- UI overlay (buttons, menus — positioned over canvas) -->
-      <div id="overlay"></div>
-
-      <!-- Sidebar for levels / info -->
-      <aside id="sidebar"></aside>
-    </div>
+    <!-- All pages are mounted dynamically into #app by main.ts -->
+    <div id="app"></div>
 
     <script type="module" src="/src/main.ts"></script>
   </body>

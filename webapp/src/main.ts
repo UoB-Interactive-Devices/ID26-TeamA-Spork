@@ -1,55 +1,47 @@
 /**
- * Main entry point — initializes all modules and wires them together.
+ * Main entry point — Spork Motion Brewing Game
+ *
+ * Sets up the page-based UI and WebSocket motion detection.
  */
-import './style.css';
-import { bus } from './modules/eventBus';
-import './modules/serial';
-import { detector } from './modules/motionDetector';
-import { game } from './modules/gameManager';
-import { renderer } from './modules/renderer';
-import { dataChart } from './modules/chart';
-import { ui } from './modules/ui';
+import './styles/main.css';
 
-async function init(): Promise<void> {
-  console.log('☕ Spork — Initializing...');
+import { router } from './pages/router.ts';
+import { createMainMenu } from './pages/MainMenu.ts';
+import { createLevelSelect } from './pages/LevelSelect.ts';
+import { createPlayPage } from './pages/Play.ts';
+import { createTutorial } from './pages/Tutorial.ts';
+import { createTutorialDetail } from './pages/TutorialDetail.ts';
+import { createChoreograph } from './pages/Choreograph.ts';
+import { motionDetector } from './components/MotionDetector.ts';
 
-  // 1. Load motion profiles for detection
-  await detector.loadProfiles();
+function init(): void {
+  console.log('☕ Spork — Initializing…');
 
-  // 2. Initialize the motion detector (listens for sensor-data events)
-  detector.init();
+  const app = document.getElementById('app')!;
 
-  // 3. Initialize the game manager (listens for motion-detected events)
-  game.init();
+  // 1. Mount all pages into #app
+  app.appendChild(createMainMenu());
+  app.appendChild(createLevelSelect());
+  app.appendChild(createPlayPage());
+  app.appendChild(createTutorial());
+  app.appendChild(createTutorialDetail());
+  app.appendChild(createChoreograph());
 
-  // 4. Initialize the canvas renderer
-  const gameCanvas = document.getElementById('game-canvas') as HTMLCanvasElement;
-  renderer.init(gameCanvas);
+  // 2. Navigate to main menu
+  router.go('main-menu');
 
-  // 5. Initialize the Chart.js data graph
-  const chartCanvas = document.getElementById('data-chart') as HTMLCanvasElement;
-  dataChart.init(chartCanvas);
+  // 3. Connect WebSocket to Python backend
+  motionDetector.connect();
 
-  // 6. Initialize UI overlays
-  ui.init();
+  // 4. Debug logging
+  document.addEventListener('motion-detected', ((e: CustomEvent) => {
+    const { motion, confidence } = e.detail;
+    console.log(`🎯 Motion: ${motion} (${Math.round(confidence * 100)}%)`);
+  }) as EventListener);
 
-  // 7. Chart toggle
-  const chartToggle = document.getElementById('show-chart') as HTMLInputElement;
-  const chartPanel = document.getElementById('chart-panel')!;
-  chartToggle.addEventListener('change', () => {
-    chartPanel.classList.toggle('hidden', !chartToggle.checked);
-    // Trigger resize so the game canvas reflows
-    window.dispatchEvent(new Event('resize'));
-  });
+  router.onNavigate((_from, to) => console.log(`📄 Page → ${to}`));
 
-  // 8. Log events for debugging
-  bus.on('serial-connected', () => console.log('✅ Arduino connected'));
-  bus.on('serial-disconnected', () => console.log('🔌 Arduino disconnected'));
-  bus.on('motion-detected', (m: string, c: number) => console.log(`🎯 Motion: ${m} (${(c * 100).toFixed(0)}%)`));
-  bus.on('level-start', (l: any) => console.log(`🎮 Level ${l.id}: ${l.name}`));
-  bus.on('level-end', (r: any) => console.log(`🏁 Level end — Score: ${r.score}, Passed: ${r.passed}`));
-
-  console.log('☕ Spork — Ready! Connect your Arduino to start.');
+  console.log('☕ Spork — Ready!');
 }
 
-init().catch(console.error);
+init();

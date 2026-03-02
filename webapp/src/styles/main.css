@@ -1,0 +1,572 @@
+/*  ────────────────────────────────────────────────────────
+    Spork — Global Styles
+    "A Little to the Left" aesthetic: warm, cosy, hand-drawn
+    ──────────────────────────────────────────────────────── */
+
+/* ── CSS Custom Properties (easy re-theming) ───────────── */
+:root {
+  /* Background tones */
+  --bg-deep:        #2b2520;
+  --bg-surface:     #3a322c;
+  --bg-card:        #4a403a;
+  --bg-card-hover:  #574c44;
+
+  /* Warm accent palette */
+  --accent-cream:   #f5e6d0;
+  --accent-warm:    #d4a574;
+  --accent-gold:    #c9944a;
+  --accent-rust:    #b87333;
+  --accent-sage:    #8faa7b;
+  --accent-rose:    #c47d7d;
+  --accent-sky:     #7da4b8;
+
+  /* Text colours */
+  --text-primary:   #f5e6d0;
+  --text-secondary: #bfa98a;
+  --text-muted:     #8a7a6a;
+
+  /* Functional */
+  --success:        #8faa7b;
+  --warning:        #d4a574;
+  --error:          #c47d7d;
+
+  /* Cup-fill gradient stops */
+  --cup-empty:      #4a403a;
+  --cup-fill-low:   #8faa7b;
+  --cup-fill-mid:   #c9944a;
+  --cup-fill-high:  #d4a574;
+
+  /* Shadows & glows */
+  --shadow-soft:    0 4px 20px rgba(0, 0, 0, 0.3);
+  --shadow-lifted:  0 8px 32px rgba(0, 0, 0, 0.4);
+  --glow-warm:      0 0 20px rgba(212, 165, 116, 0.25);
+
+  /* Typography */
+  --font-display:   'Playfair Display', 'Georgia', serif;
+  --font-body:      'Nunito', 'Segoe UI', system-ui, sans-serif;
+  --font-mono:      'JetBrains Mono', 'Fira Code', monospace;
+
+  /* Spacing scale */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2.5rem;
+  --space-2xl: 4rem;
+
+  /* Border radius — slightly imperfect / organic */
+  --radius-sm:  6px;
+  --radius-md:  12px;
+  --radius-lg:  20px;
+  --radius-pill: 999px;
+
+  /* Transition timings */
+  --ease-out-soft: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  --ease-spring:   cubic-bezier(0.34, 1.56, 0.64, 1);
+  --duration-fast:  180ms;
+  --duration-mid:   350ms;
+  --duration-slow:  600ms;
+  --duration-page:  500ms;
+}
+
+/* ── Reset & Base ──────────────────────────────────────── */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  font-size: 16px;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-body);
+  background-color: var(--bg-deep);
+  color: var(--text-primary);
+  min-height: 100dvh;
+  overflow: hidden;
+  /* Subtle paper-like texture — swap with image easily */
+  background-image: url('');
+  background-size: cover;
+}
+
+/* ── App Container ─────────────────────────────────────── */
+#app {
+  position: relative;
+  width: 100%;
+  height: 100dvh;
+  overflow: hidden;
+}
+
+/* ── Page Containers ───────────────────────────────────── */
+.page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-lg);
+  opacity: 0;
+  transform: translateY(16px) scale(0.98);
+  transition:
+    opacity var(--duration-page) var(--ease-out-soft),
+    transform var(--duration-page) var(--ease-out-soft);
+  pointer-events: none;
+  will-change: opacity, transform;
+}
+
+.page.active {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.page.exit {
+  opacity: 0;
+  transform: translateY(-12px) scale(0.97);
+  pointer-events: none;
+}
+
+/* ── Typography ────────────────────────────────────────── */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--accent-cream);
+}
+
+h1 { font-size: 2.8rem; letter-spacing: -0.02em; }
+h2 { font-size: 1.8rem; }
+h3 { font-size: 1.3rem; }
+
+p {
+  font-family: var(--font-body);
+  color: var(--text-secondary);
+  line-height: 1.6;
+  max-width: 42ch;
+}
+
+.subtitle {
+  font-size: 1.05rem;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-top: var(--space-xs);
+}
+
+/* ── Buttons — feel like physical objects ──────────────── */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-sm);
+  padding: var(--space-md) var(--space-xl);
+  border: none;
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-size: 1.15rem;
+  font-weight: 600;
+  cursor: pointer;
+  color: var(--bg-deep);
+  background: var(--accent-warm);
+  box-shadow: var(--shadow-soft), inset 0 1px 0 rgba(255,255,255,0.15);
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-out-soft),
+    background var(--duration-mid) var(--ease-out-soft);
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 60%);
+  pointer-events: none;
+}
+
+.btn:hover {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow: var(--shadow-lifted), var(--glow-warm);
+}
+
+.btn:active {
+  transform: translateY(1px) scale(0.98);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+/* Button variants */
+.btn--primary   { background: var(--accent-warm);  color: var(--bg-deep); }
+.btn--sage      { background: var(--accent-sage);  color: var(--bg-deep); }
+.btn--rose      { background: var(--accent-rose);  color: var(--bg-deep); }
+.btn--sky       { background: var(--accent-sky);   color: var(--bg-deep); }
+.btn--gold      { background: var(--accent-gold);  color: var(--bg-deep); }
+.btn--ghost {
+  background: transparent;
+  color: var(--text-secondary);
+  box-shadow: none;
+  border: 2px solid var(--bg-card-hover);
+}
+.btn--ghost:hover {
+  background: var(--bg-card);
+  color: var(--accent-cream);
+  box-shadow: none;
+}
+
+.btn--small {
+  padding: var(--space-sm) var(--space-md);
+  font-size: 0.95rem;
+}
+
+.btn--large {
+  padding: var(--space-lg) var(--space-2xl);
+  font-size: 1.3rem;
+  border-radius: var(--radius-lg);
+}
+
+/* Icon slot inside buttons — swap background-image later */
+.btn-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  background-color: rgba(0,0,0,0.15);
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+/* Named icon classes (for asset swapping) */
+.btn-play-icon   { /* background-image: url('/assets/icon-play.png'); */ }
+.btn-learn-icon  { /* background-image: url('/assets/icon-learn.png'); */ }
+.btn-create-icon { /* background-image: url('/assets/icon-create.png'); */ }
+.btn-back-icon   { /* background-image: url('/assets/icon-back.png'); */ }
+
+/* ── Cards — round select, prop select ─────────────────── */
+.card {
+  background: var(--bg-card);
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-soft);
+  transition:
+    transform var(--duration-fast) var(--ease-spring),
+    box-shadow var(--duration-fast) var(--ease-out-soft),
+    background var(--duration-mid) var(--ease-out-soft);
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1.5px solid rgba(245, 230, 208, 0.06);
+  pointer-events: none;
+}
+
+.card:hover {
+  background: var(--bg-card-hover);
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: var(--shadow-lifted);
+}
+
+.card:active {
+  transform: translateY(0) scale(0.99);
+}
+
+.card__emoji {
+  font-size: 2.2rem;
+  margin-bottom: var(--space-sm);
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-size: 1.2rem;
+  color: var(--accent-cream);
+  margin-bottom: var(--space-xs);
+}
+
+.card__subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* ── Grid layouts ──────────────────────────────────────── */
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: var(--space-lg);
+  width: 100%;
+  max-width: 720px;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.stack--lg { gap: var(--space-lg); }
+.stack--xl { gap: var(--space-xl); }
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+/* ── Cup Fill Component ────────────────────────────────── */
+.cup {
+  position: relative;
+  width: 120px;
+  height: 160px;
+  border-radius: 12px 12px 24px 24px;
+  background: var(--bg-card);
+  box-shadow: var(--shadow-soft);
+  overflow: hidden;
+  /* Swap with illustrated cup image */
+  /* background-image: url('/assets/cup.png'); */
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.cup__fill {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 0%;
+  background: linear-gradient(
+    0deg,
+    var(--accent-sage) 0%,
+    var(--accent-gold) 50%,
+    var(--accent-warm) 100%
+  );
+  border-radius: 0 0 22px 22px;
+  transition: height var(--duration-slow) var(--ease-out-soft);
+}
+
+.cup__label {
+  position: absolute;
+  bottom: var(--space-sm);
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--bg-deep);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.2);
+  z-index: 1;
+}
+
+/* ── Motion Prompt Component ───────────────────────────── */
+.motion-prompt {
+  text-align: center;
+  padding: var(--space-lg);
+  animation: prompt-enter var(--duration-mid) var(--ease-spring) both;
+}
+
+.motion-prompt__emoji {
+  font-size: 3.5rem;
+  margin-bottom: var(--space-sm);
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+.motion-prompt__label {
+  font-family: var(--font-display);
+  font-size: 1.6rem;
+  color: var(--accent-cream);
+  margin-bottom: var(--space-xs);
+}
+
+.motion-prompt__desc {
+  font-size: 0.95rem;
+  color: var(--text-muted);
+}
+
+.motion-prompt__timer {
+  margin-top: var(--space-md);
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  color: var(--accent-gold);
+}
+
+/* ── Feedback flash ────────────────────────────────────── */
+.feedback-flash {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 100;
+  opacity: 0;
+}
+
+.feedback-flash.success {
+  background: radial-gradient(circle at center, rgba(143,170,123,0.25) 0%, transparent 70%);
+  animation: flash-in 500ms var(--ease-out-soft);
+}
+
+.feedback-flash.fail {
+  background: radial-gradient(circle at center, rgba(196,125,125,0.2) 0%, transparent 70%);
+  animation: flash-in 500ms var(--ease-out-soft);
+}
+
+/* ── Back Button (persistent) ──────────────────────────── */
+.back-btn {
+  position: absolute;
+  top: var(--space-lg);
+  left: var(--space-lg);
+  z-index: 10;
+}
+
+/* ── Connection Status ─────────────────────────────────── */
+.connection-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent-rust);
+  display: inline-block;
+  margin-right: var(--space-xs);
+  transition: background var(--duration-mid);
+}
+
+.connection-dot.connected {
+  background: var(--accent-sage);
+  box-shadow: 0 0 8px var(--accent-sage);
+}
+
+/* ── Named background classes (for asset swap) ─────────── */
+.menu-bg {
+  /* background-image: url('/assets/menu-bg.jpg'); */
+  background-size: cover;
+  background-position: center;
+}
+
+.level-select-bg {
+  /* background-image: url('/assets/level-select-bg.jpg'); */
+}
+
+.tutorial-bg {
+  /* background-image: url('/assets/tutorial-bg.jpg'); */
+}
+
+.choreograph-bg {
+  /* background-image: url('/assets/choreograph-bg.jpg'); */
+}
+
+/* ── Keyframes ─────────────────────────────────────────── */
+@keyframes prompt-enter {
+  from {
+    opacity: 0;
+    transform: translateY(20px) scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes gentle-bounce {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-6px); }
+}
+
+@keyframes flash-in {
+  0%   { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Stagger children for nice enter effect */
+.stagger-children > * {
+  opacity: 0;
+  animation: fade-in-up var(--duration-mid) var(--ease-out-soft) both;
+}
+.stagger-children > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-children > *:nth-child(2) { animation-delay: 80ms; }
+.stagger-children > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-children > *:nth-child(4) { animation-delay: 240ms; }
+.stagger-children > *:nth-child(5) { animation-delay: 320ms; }
+.stagger-children > *:nth-child(6) { animation-delay: 400ms; }
+.stagger-children > *:nth-child(7) { animation-delay: 480ms; }
+
+/* ── Responsive ────────────────────────────────────────── */
+@media (max-width: 480px) {
+  h1 { font-size: 2rem; }
+  h2 { font-size: 1.4rem; }
+
+  .btn--large {
+    padding: var(--space-md) var(--space-lg);
+    font-size: 1.1rem;
+  }
+
+  .grid-3 {
+    grid-template-columns: 1fr;
+    max-width: 320px;
+  }
+
+  .cup {
+    width: 90px;
+    height: 120px;
+  }
+}
+
+/* ── Scrollable page content ───────────────────────────── */
+.page-scroll {
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: 100%;
+  width: 100%;
+}
+
+/* Custom scrollbar — subtle */
+.page-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.page-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.page-scroll::-webkit-scrollbar-thumb {
+  background: var(--bg-card-hover);
+  border-radius: var(--radius-pill);
+}
+
+/* ── Utility ───────────────────────────────────────────── */
+.hidden { display: none !important; }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  border: 0;
+}
+
+/* Google Fonts import — loaded via <link> in index.html
+   These are the intended fonts:
+   - Playfair Display (display headings)
+   - Nunito (body text)
+*/

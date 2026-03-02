@@ -21,7 +21,7 @@ export const MOTION_LABELS: Record<MotionType, { label: string; emoji: string; d
 export const LEVELS: GameLevel[] = [
   {
     id: 1,
-    name: 'First Brew',
+    name: 'Tutorial',
     description: 'Learn the basics — perform each motion one at a time.',
     passingScore: 50,
     steps: [
@@ -32,7 +32,7 @@ export const LEVELS: GameLevel[] = [
   },
   {
     id: 2,
-    name: 'Barista Training',
+    name: 'Play',
     description: 'Chain multiple motions together — the drink is getting complex!',
     passingScore: 60,
     steps: [
