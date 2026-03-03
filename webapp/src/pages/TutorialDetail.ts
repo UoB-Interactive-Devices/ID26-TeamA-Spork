@@ -2,7 +2,7 @@
  * TutorialDetail page — shows what motion to perform for a specific prop,
  * with a visual demonstration area and real-time sensor feedback.
  *
- * Special case: "circle" motion uses the GrinderTutorial component.
+ * Special case: "grinding" motion uses the GrinderTutorial component.
  */
 import { router } from './router.ts';
 import { MOTION_META, type MotionType } from '../types/motion.types.ts';
@@ -84,8 +84,8 @@ export function createTutorialDetail(): HTMLElement {
       const motion = (page.dataset.motion ?? 'stir') as MotionType;
       setupDetail(page, motion);
 
-      if (motion === 'circle') {
-        // Use grinder component for circle motion
+      if (motion === 'grinding') {
+        // Use grinder component for grinding motion
         const grinderContainer = page.querySelector('#td-grinder-container') as HTMLElement;
         grinder = new GrinderTutorial(grinderContainer);
         grinder.start();
@@ -118,7 +118,7 @@ export function createTutorialDetail(): HTMLElement {
 
 function setupDetail(page: HTMLElement, motion: MotionType): void {
   const meta = MOTION_META[motion];
-  (page.querySelector('#td-emoji') as HTMLElement).textContent = meta.emoji;
+  (page.querySelector('#td-emoji') as HTMLElement).innerHTML = `<img class="tutorial-detail__asset" src="${meta.asset}" alt="${meta.label}" />`;
   (page.querySelector('#td-prop') as HTMLElement).textContent = meta.prop;
   (page.querySelector('#td-label') as HTMLElement).textContent = meta.label;
   (page.querySelector('#td-desc') as HTMLElement).textContent = meta.description;

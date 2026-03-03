@@ -1,5 +1,5 @@
 /**
- * MotionPrompt — shows the current expected motion with emoji,
+ * MotionPrompt — shows the current expected motion with image asset,
  * label, description, and optional countdown timer.
  *
  * Usage:
@@ -12,7 +12,7 @@ import { MOTION_META, type MotionType } from '../types/motion.types.ts';
 
 export class MotionPrompt {
   private el: HTMLElement;
-  private emojiEl: HTMLElement;
+  private assetEl: HTMLElement;
   private labelEl: HTMLElement;
   private descEl: HTMLElement;
   private timerEl: HTMLElement;
@@ -22,8 +22,8 @@ export class MotionPrompt {
     this.el = document.createElement('div');
     this.el.className = 'motion-prompt';
 
-    this.emojiEl = document.createElement('div');
-    this.emojiEl.className = 'motion-prompt__emoji';
+    this.assetEl = document.createElement('div');
+    this.assetEl.className = 'motion-prompt__emoji';
 
     this.labelEl = document.createElement('div');
     this.labelEl.className = 'motion-prompt__label';
@@ -34,14 +34,14 @@ export class MotionPrompt {
     this.timerEl = document.createElement('div');
     this.timerEl.className = 'motion-prompt__timer';
 
-    this.el.append(this.emojiEl, this.labelEl, this.descEl, this.timerEl);
+    this.el.append(this.assetEl, this.labelEl, this.descEl, this.timerEl);
     parent.appendChild(this.el);
   }
 
   /** Show a motion prompt */
   show(motion: MotionType): void {
     const meta = MOTION_META[motion];
-    this.emojiEl.textContent = meta.emoji;
+    this.assetEl.innerHTML = `<img class="motion-prompt__asset" src="${meta.asset}" alt="${meta.label}" />`;
     this.labelEl.textContent = meta.label;
     this.descEl.textContent = meta.description;
     this.timerEl.textContent = '';
@@ -85,19 +85,19 @@ export class MotionPrompt {
   /** Flash success on this prompt */
   markSuccess(): void {
     this.el.classList.add('success');
-    this.emojiEl.textContent = '✅';
+    this.assetEl.textContent = '✅';
   }
 
   /** Flash failure on this prompt */
   markFail(): void {
     this.el.classList.add('fail');
-    this.emojiEl.textContent = '❌';
+    this.assetEl.textContent = '❌';
   }
 
   /** Hide / clear the prompt */
   clear(): void {
     this.stopTimer();
-    this.emojiEl.textContent = '';
+    this.assetEl.textContent = '';
     this.labelEl.textContent = '';
     this.descEl.textContent = '';
     this.timerEl.textContent = '';

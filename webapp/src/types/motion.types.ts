@@ -80,15 +80,15 @@ export const ALL_MOTIONS: MotionType[] = [
 
 /** Human-friendly labels for each motion */
 export const MOTION_META: Record<MotionType, { label: string; asset: string; description: string; prop: string }> = {
-  pour:           { label: 'Pour',           asset: '🫖', description: 'Pour to get some water/milk to your drink',          prop: 'Pour' },
-  press_down:     { label: 'Press Down',     asset: '⬇️',  description: 'Press the tool firmly downward',                    prop: 'French Press' },
-  scoop:          { label: 'Scoop',          asset: '🥄', description: 'Scoop upward in a smooth arc',                      prop: 'Spoon' },
-  squeeze:        { label: 'Squeeze',        asset: '🧊', description: 'Squeeze to get some ice cubes',                     prop: 'Tongs' },
-  stir:           { label: 'Stir',           asset: '🥄', description: 'Stir in a circular motion',                         prop: 'Spoon' },
-  whisk:          { label: 'Whisk',          asset: '🧋', description: 'Whisk to get a smooth texture',                     prop: 'Whisk' },
-  grinding:       { label: 'Grinding',       asset: '🔄', description: 'Move in a circular motion to grind the coffee beans', prop: 'Coffee Grinder' },
-  left_right:     { label: 'Left-Right',     asset: '↔️',  description: 'Sway the tool side to side',                        prop: 'Sieve' },
-  up_down:        { label: 'Up-Down',        asset: '🍵',  description: 'Dip the tool up and down rhythmically',             prop: 'Teabag' },
+  pour:           { label: 'Pour',           asset: '/assets/front_milk.PNG', description: 'Pour to get some water/milk to your drink',          prop: 'Pour' },
+  press_down:     { label: 'Press Down',     asset: '/assets/front_press.PNG', description: 'Press the tool firmly downward',                    prop: 'French Press' },
+  scoop:          { label: 'Scoop',          asset: '/assets/front_tea.PNG', description: 'Scoop upward in a smooth arc',                      prop: 'Spoon' },
+  squeeze:        { label: 'Squeeze',        asset: '/assets/front_milk.PNG', description: 'Squeeze to get some ice cubes',                     prop: 'Tongs' },
+  stir:           { label: 'Stir',           asset: '/assets/front_tea.PNG', description: 'Stir in a circular motion',                         prop: 'Spoon' },
+  whisk:          { label: 'Whisk',          asset: '/assets/front_whisk.PNG', description: 'Whisk to get a smooth texture',                     prop: 'Whisk' },
+  grinding:       { label: 'Grinding',       asset: '/assets/front_grinder.PNG', description: 'Move in a circular motion to grind the coffee beans', prop: 'Coffee Grinder' },
+  left_right:     { label: 'Left-Right',     asset: '/assets/front_sieve.PNG', description: 'Sway the tool side to side',                        prop: 'Sieve' },
+  up_down:        { label: 'Up-Down',        asset: '/assets/front_tea.PNG', description: 'Dip the tool up and down rhythmically',             prop: 'Teabag' },
 };
 
 /* ── Level Definitions ─────────────────────────────────── */

@@ -41,7 +41,7 @@ export function createLevelSelect(): HTMLElement {
     const roundLabel = `Round ${level.id}`;
 
     card.innerHTML = `
-      <div class="card__emoji">${levelEmoji(level.id)}</div>
+      <div class="card__emoji"><img class="card__asset" src="${levelAsset(level.id)}" alt="${roundLabel}" /></div>
       <div class="card__title">${roundLabel}: ${level.name}</div>
       <div class="card__subtitle">${stepsText} · ${level.description}</div>
     `;
@@ -66,8 +66,8 @@ export function createLevelSelect(): HTMLElement {
   return page;
 }
 
-function levelEmoji(id: number): string {
-  if (id === 1) return '🍵';
-  if (id === 2) return '☕';
-  return '🏆';
+function levelAsset(id: number): string {
+  if (id === 1) return '/assets/front_tea.PNG';
+  if (id === 2) return '/assets/front_grinder.PNG';
+  return '/assets/front_whisk.PNG';
 }

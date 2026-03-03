@@ -56,20 +56,16 @@ export interface MotionProfilesData {
 
 /** Game motion types the player can perform */
 export type MotionType =
-  | 'coffee_grinder'
+  | 'grinding'
   | 'pour'
   | 'press_down'
   | 'scoop'
-  | 'sieve'
   | 'squeeze'
   | 'stir'
-  | 'tea_bag'
   | 'whisk'
   // Legacy motions (single recording)
-  | 'circle'
   | 'left_right'
-  | 'up_down'
-  | 'w_motion';
+  | 'up_down';
 
 /** A single step in a game level */
 export interface LevelStep {

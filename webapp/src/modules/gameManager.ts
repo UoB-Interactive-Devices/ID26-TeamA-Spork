@@ -111,7 +111,7 @@ class GameManager {
     this.state.stepStartTime = Date.now();
     this.state.stepDetected = false;
     this.state.stepConfidence = 0;
-    this.showFeedback(`${MOTION_LABELS[step.motion].emoji} ${step.label}`);
+    this.showFeedback(`${MOTION_LABELS[step.motion].label}: ${step.label}`);
     bus.emit('step-start', step, this.state.currentStepIndex);
 
     // Countdown timer
@@ -212,7 +212,7 @@ class GameManager {
     if (this.state.screen === 'creative' && this.state.creativeRecording) {
       this.state.creativeSequence.push(motion);
       const info = MOTION_LABELS[motion];
-      this.showFeedback(`${info.emoji} Recorded: ${info.label}`);
+      this.showFeedback(`Recorded: ${info.label}`);
       bus.emit('creative-motion-added', motion);
     }
   }
