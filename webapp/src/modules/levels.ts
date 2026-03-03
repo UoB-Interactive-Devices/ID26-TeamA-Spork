@@ -1,5 +1,5 @@
 /**
- * Level definitions for the Spork Motion Game.
+ * Level definitions for the Game.
  * 
  * Level 1: Simple — single motions with generous time
  * Level 2: Intermediate — sequences of 2-3 motions

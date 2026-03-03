@@ -1,5 +1,5 @@
 /**
- * Shared type definitions for the Spork Motion Game
+ * Shared type definitions for the Motion Game
  */
 
 /** Raw magnetometer reading from Arduino */

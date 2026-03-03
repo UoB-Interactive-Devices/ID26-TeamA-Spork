@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-Serial → WebSocket Bridge for Spork
+Serial → WebSocket Bridge for Game
 ====================================
 Reads magnetometer JSON from Arduino over serial, runs real-time
 motion detection using saved profiles, and broadcasts results to
@@ -279,7 +279,7 @@ async def serial_reader(port: str, raw_mode: bool = False, baud_rate: int = BAUD
 
 # ── Main ──────────────────────────────────────────────────
 async def main():
-    parser = argparse.ArgumentParser(description="Spork: Arduino → WebSocket bridge")
+    parser = argparse.ArgumentParser(description="While It Steeps: Arduino → WebSocket bridge")
     parser.add_argument(
         "--port", "-p",
         help="Serial port (e.g. /dev/cu.usbmodem14201 or COM3). Auto-detects if omitted.",
@@ -311,7 +311,7 @@ async def main():
 
     print(r"""
     ╔═══════════════════════════════════════╗
-    ║   ☕  Spork — Arduino Bridge          ║
+    ║   While It Steeps — Arduino Bridge    ║
     ╚═══════════════════════════════════════╝
     """)
 

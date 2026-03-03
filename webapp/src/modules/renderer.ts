@@ -106,7 +106,7 @@ class GameRenderer {
     ctx.fillStyle = '#E8D5B7';
     ctx.font = 'bold 48px "Segoe UI", system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('☕ Spork', w / 2, h * 0.2);
+    ctx.fillText('While It Steeps', w / 2, h * 0.2);
 
     ctx.font = '18px "Segoe UI", system-ui, sans-serif';
     ctx.fillStyle = '#A89279';

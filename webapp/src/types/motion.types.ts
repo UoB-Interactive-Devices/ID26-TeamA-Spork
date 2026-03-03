@@ -1,5 +1,5 @@
 /**
- * Shared type definitions for the Spork Motion Brewing Game.
+ * Shared type definitions for the Motion Brewing Game.
  */
 
 /* ── Sensor Types ──────────────────────────────────────── */
@@ -75,15 +75,15 @@ export const ALL_MOTIONS: MotionType[] = [
 ];
 
 /** Human-friendly labels for each motion */
-export const MOTION_META: Record<MotionType, { label: string; emoji: string; description: string; prop: string }> = {
-  circle:     { label: 'Circle',     emoji: '🔄', description: 'Move in a circular motion to grind the coffee beans',     prop: 'Coffee Grinder' },
-  left_right: { label: 'Left-Right', emoji: '↔️',  description: 'Sway the tool side to side',             prop: 'Sieve' },
-  press_down: { label: 'Press Down', emoji: '⬇️',  description: 'Press the tool firmly downward',         prop: 'French Press' },
-  scoop:      { label: 'Scoop',      emoji: '🥄', description: 'Scoop upward in a smooth arc',           prop: 'Spoon' },
-  squeeze:    { label: 'Squeeze',    emoji: '🧊', description: 'Squeeze to get some ice cubes',                prop: 'Tongs' },
-  up_down:    { label: 'Up-Down',    emoji: '🍵',  description: 'Dip the tool up and down rhythmically',  prop: 'Teabag' },
-  pour:   { label: 'Pour',   emoji: '🫖', description: 'Pour to get some water/milk to your drink',          prop: 'Pour' },
-  w_motion:   { label: 'W-Motion',   emoji: '🧋', description: 'Whisk to get a smooth texture',          prop: 'Whisk' },
+export const MOTION_META: Record<MotionType, { label: string; asset: string; description: string; prop: string }> = {
+  circle:     { label: 'Circle',     asset: '../assets/front_grinder.PNG', description: 'Move in a circular motion to grind the coffee beans',     prop: 'Coffee Grinder' },
+  left_right: { label: 'Left-Right', asset: '../assets/front_sieve.PNG',  description: 'Sway the tool side to side',             prop: 'Sieve' },
+  press_down: { label: 'Press Down', asset: '../assets/front_press.PNG',  description: 'Press the tool firmly downward',         prop: 'French Press' },
+  scoop:      { label: 'Scoop',      asset: '../assets/front_spoon.PNG', description: 'Scoop upward in a smooth arc',           prop: 'Spoon' },
+  squeeze:    { label: 'Squeeze',    asset: '../assets/front_tongs.PNG', description: 'Squeeze to get some ice cubes',                prop: 'Tongs' },
+  up_down:    { label: 'Up-Down',    asset: '../assets/front_teabag.PNG',  description: 'Dip the tool up and down rhythmically',  prop: 'Teabag' },
+  pour:       { label: 'Pour',       asset: '/assets/front_pour.PNG', description: 'Pour to get some water/milk to your drink',          prop: 'Pour' },
+  w_motion:   { label: 'W-Motion',   asset: '/assets/front_whisk.PNG', description: 'Whisk to get a smooth texture',          prop: 'Whisk' },
 };
 
 /* ── Level Definitions ─────────────────────────────────── */
