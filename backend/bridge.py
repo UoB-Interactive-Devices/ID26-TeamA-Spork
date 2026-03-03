@@ -35,8 +35,15 @@ WS_HOST = "localhost"
 WS_PORT = 8765
 BAUD_RATE = 115200
 SAMPLE_RATE = 25          # Hz  (Arduino sends every 40ms)
-BUFFER_SIZE = 50           # ~2 seconds of data
-DETECTION_COOLDOWN = 1.0   # seconds between same-motion detections
+BUFFER_SIZE = 200          # ~8 seconds max capture window
+DETECTION_COOLDOWN = 1.5   # seconds after a detection before next one
+CALIBRATION_SAMPLES = 50   # first ~2 s used to learn the live noise floor
+
+# Segment detection parameters
+START_THRESHOLD_SAMPLES = 3    # consecutive samples above noise to START
+END_THRESHOLD_SAMPLES = 8      # consecutive samples below noise to END
+MIN_GESTURE_SAMPLES = 8        # minimum samples in a gesture (~0.3 s)
+MAX_GESTURE_SAMPLES = 150      # maximum gesture length (~6 s) — auto-end
 
 # ── Load motion profiles ─────────────────────────────────
 PROFILES_PATH = Path(__file__).parent.parent / "plots" / "motion_profiles.json"
@@ -67,81 +74,279 @@ def find_serial_port() -> str | None:
     for p in ports:
         desc = (p.description or "").lower()
         mfr = (p.manufacturer or "").lower()
-        if any(kw in desc for kw in ["arduino", "ch340", "cp210", "ftdi", "usbmodem", "usbserial"]):
+        if any(kw in desc for kw in ["arduino", "ch340", "cp210", "ftdi", "usbmodem", "usbserial", "esp32", "esp"]):
             return p.device
-        if any(kw in mfr for kw in ["arduino", "wch", "silicon labs", "ftdi"]):
+        if any(kw in mfr for kw in ["arduino", "wch", "silicon labs", "ftdi", "espressif"]):
             return p.device
-    # Fallback: return any /dev/cu.usb* or COM port
+    # Fallback: return any USB serial device or /dev/cu.usb* port
     for p in ports:
-        if "usb" in p.device.lower():
+        desc = (p.description or "").lower()
+        if "usb" in p.device.lower() or "usb serial" in desc:
             return p.device
     return None
 
 
-# ── Simple real-time motion detector ─────────────────────
+# ── Segment-then-classify motion detector ─────────────────
 class RealtimeDetector:
     """
-    Buffers recent readings and checks for each motion type
-    based on magnitude thresholds and axis activity patterns.
+    State-machine detector that captures gesture windows, then classifies them.
+
+    States:
+      CALIBRATING -> collecting first N samples to learn baseline + noise floor
+      IDLE        -> waiting for motion to begin (signal rises above noise)
+      ACTIVE      -> gesture in progress, accumulating samples
+      COOLDOWN    -> just detected something, waiting before allowing next
+
+    When a gesture ends (signal returns to noise), the captured window is
+    analysed and scored against all motion profiles.
     """
 
+    CALIBRATING = "calibrating"
+    IDLE = "idle"
+    ACTIVE = "active"
+    COOLDOWN = "cooldown"
+
     def __init__(self):
-        self.buffer: deque[dict] = deque(maxlen=BUFFER_SIZE)
-        self.last_detection: dict[str, float] = {}
+        # Auto-calibration
+        self._cal_samples: list[tuple[float, float, float]] = []
+        self._calibrated = False
+        self._noise_floor = 999.0
+        self._live_offset_x = 0.0
+        self._live_offset_y = 0.0
+        self._live_offset_z = 0.0
 
-    def add_sample(self, x: float, y: float, z: float) -> list[dict]:
-        """
-        Add a calibrated (baseline-subtracted) sample.
-        Returns a list of detection events (usually 0 or 1).
-        """
-        mag = math.sqrt(x * x + y * y + z * z)
-        self.buffer.append({"x": x, "y": y, "z": z, "mag": mag, "t": time.time()})
+        # State machine
+        self._state = self.CALIBRATING
+        self._consecutive_above = 0
+        self._consecutive_below = 0
+        self._gesture_buffer: list[dict] = []
+        self._cooldown_until: float = 0.0
 
-        if len(self.buffer) < 10:
+    def add_sample(self, x_raw: float, y_raw: float, z_raw: float) -> list[dict]:
+        """Feed a raw sensor sample. Returns detection events (usually 0 or 1)."""
+
+        # -- CALIBRATING ------------------------------------------------
+        if self._state == self.CALIBRATING:
+            self._cal_samples.append((x_raw, y_raw, z_raw))
+            if len(self._cal_samples) >= CALIBRATION_SAMPLES:
+                arr = np.array(self._cal_samples)
+                self._live_offset_x = float(arr[:, 0].mean())
+                self._live_offset_y = float(arr[:, 1].mean())
+                self._live_offset_z = float(arr[:, 2].mean())
+                mags_cal = np.sqrt(
+                    (arr[:, 0] - self._live_offset_x) ** 2 +
+                    (arr[:, 1] - self._live_offset_y) ** 2 +
+                    (arr[:, 2] - self._live_offset_z) ** 2
+                )
+                self._noise_floor = max(
+                    15.0, float(mags_cal.mean() + 3.0 * mags_cal.std())
+                )
+                self._calibrated = True
+                self._state = self.IDLE
+                print(f"  Auto-calibrated live baseline: "
+                      f"x={self._live_offset_x:.1f} y={self._live_offset_y:.1f} "
+                      f"z={self._live_offset_z:.1f} uT")
+                print(f"    noise floor={self._noise_floor:.1f} uT")
             return []
 
-        detections = []
-        now = time.time()
+        # Subtract live baseline
+        x = x_raw - self._live_offset_x
+        y = y_raw - self._live_offset_y
+        z = z_raw - self._live_offset_z
+        mag = math.sqrt(x * x + y * y + z * z)
+        sample = {"x": x, "y": y, "z": z, "mag": mag, "t": time.time()}
+
+        is_above = mag > self._noise_floor
+
+        # -- COOLDOWN ---------------------------------------------------
+        if self._state == self.COOLDOWN:
+            if time.time() >= self._cooldown_until:
+                self._state = self.IDLE
+                self._consecutive_above = 0
+                self._consecutive_below = 0
+            return []
+
+        # -- IDLE: waiting for gesture to start -------------------------
+        if self._state == self.IDLE:
+            if is_above:
+                self._consecutive_above += 1
+                if self._consecutive_above >= START_THRESHOLD_SAMPLES:
+                    self._state = self.ACTIVE
+                    self._gesture_buffer = []
+                    self._consecutive_below = 0
+                    print("  >> Motion started - recording gesture...")
+            else:
+                self._consecutive_above = 0
+            return []
+
+        # -- ACTIVE: gesture in progress --------------------------------
+        if self._state == self.ACTIVE:
+            self._gesture_buffer.append(sample)
+
+            if not is_above:
+                self._consecutive_below += 1
+            else:
+                self._consecutive_below = 0
+
+            gesture_ended = (
+                self._consecutive_below >= END_THRESHOLD_SAMPLES
+                or len(self._gesture_buffer) >= MAX_GESTURE_SAMPLES
+            )
+
+            if gesture_ended:
+                # Trim trailing quiet samples
+                if self._consecutive_below > 0:
+                    self._gesture_buffer = self._gesture_buffer[:-self._consecutive_below]
+
+                n = len(self._gesture_buffer)
+                dur = n / SAMPLE_RATE
+
+                if n >= MIN_GESTURE_SAMPLES:
+                    print(f"  << Motion ended - {n} samples ({dur:.1f}s). Classifying...")
+                    result = self._classify_gesture(self._gesture_buffer)
+                    if result:
+                        self._state = self.COOLDOWN
+                        self._cooldown_until = time.time() + DETECTION_COOLDOWN
+                        return [result]
+                    else:
+                        print("    -> No confident match.")
+                else:
+                    print(f"    -> Too short ({n} samples) - ignored.")
+
+                self._state = self.IDLE
+                self._gesture_buffer = []
+                self._consecutive_above = 0
+                self._consecutive_below = 0
+
+        return []
+
+    def _classify_gesture(self, gesture: list[dict]) -> dict | None:
+        """
+        Classify a captured gesture window by scoring its features against
+        all motion profiles. Returns the best match or None.
+        """
+        xs = np.array([s["x"] for s in gesture])
+        ys = np.array([s["y"] for s in gesture])
+        zs = np.array([s["z"] for s in gesture])
+        mags = np.array([s["mag"] for s in gesture])
+
+        g_x_std = float(xs.std())
+        g_y_std = float(ys.std())
+        g_z_std = float(zs.std())
+        g_mag_mean = float(mags.mean())
+        g_mag_std = float(mags.std())
+        g_mag_max = float(mags.max())
+
+        # Most active axis
+        axis_stds = {"x": g_x_std, "y": g_y_std, "z": g_z_std}
+        g_most_active = max(axis_stds, key=axis_stds.get)
+
+        # Axis ratio vector (normalised)
+        total_std = g_x_std + g_y_std + g_z_std + 1e-6
+        g_ratio = np.array([g_x_std / total_std, g_y_std / total_std, g_z_std / total_std])
+
+        # Dominant frequency via FFT on magnitude signal
+        g_freq = 0.0
+        if len(mags) > 10:
+            centered = mags - mags.mean()
+            fft_vals = np.abs(np.fft.rfft(centered))
+            freqs = np.fft.rfftfreq(len(centered), d=1.0 / SAMPLE_RATE)
+            # Ignore DC (index 0) and very low freqs
+            if len(fft_vals) > 2:
+                dom_idx = np.argmax(fft_vals[1:]) + 1
+                g_freq = float(freqs[dom_idx])
+
+        # Count zero-crossings on the most active axis (periodicity proxy)
+        active_data = {"x": xs, "y": ys, "z": zs}[g_most_active]
+        centered_active = active_data - active_data.mean()
+        zero_crossings = int(np.sum(np.diff(np.sign(centered_active)) != 0))
+        g_crossings_per_sec = zero_crossings / (len(gesture) / SAMPLE_RATE) if len(gesture) > 1 else 0
+
+        print(f"    Gesture features: axis={g_most_active} freq={g_freq:.2f}Hz "
+              f"mag_mean={g_mag_mean:.0f} mag_std={g_mag_std:.0f} max={g_mag_max:.0f} "
+              f"x_std={g_x_std:.0f} y_std={g_y_std:.0f} z_std={g_z_std:.0f} "
+              f"zc/s={g_crossings_per_sec:.1f}")
+
+        best_name = None
+        best_score = 0.0
+        all_scores: list[tuple[str, float]] = []
 
         for name, profile in motions.items():
             if name == "baseline":
                 continue
 
+            score = 0.0
+            p_mag_mean = profile.get("magnitude_mean", 50)
+            p_mag_std = profile.get("magnitude_std", 30)
+            p_freq = profile.get("dominant_freq_hz", 0.5)
+
+            # 1. Frequency similarity (0-0.30) — STRONGEST differentiator
+            if p_freq > 0 and g_freq > 0:
+                freq_ratio = min(g_freq, p_freq) / max(g_freq, p_freq)
+                score += 0.30 * freq_ratio
+            elif p_freq == 0 and g_freq == 0:
+                score += 0.15  # both zero — neutral
+
+            # 2. Most active axis match (0.20)
+            if g_most_active == profile.get("most_active_axis", "x"):
+                score += 0.20
+
+            # 3. Axis ratio L1 distance (0-0.15) — L1 is more discriminating than cosine
+            px = profile.get("x_std", 1)
+            py = profile.get("y_std", 1)
+            pz = profile.get("z_std", 1)
+            pt = px + py + pz + 1e-6
+            p_ratio = np.array([px / pt, py / pt, pz / pt])
+            l1_dist = float(np.sum(np.abs(g_ratio - p_ratio)))  # 0 = identical, 2 = opposite
+            axis_score = max(0.0, 1.0 - l1_dist * 2.0)  # penalise differences
+            score += 0.15 * axis_score
+
+            # 4. Magnitude mean similarity (0-0.15)
+            if p_mag_mean > 0:
+                mag_ratio = min(g_mag_mean, p_mag_mean) / max(g_mag_mean, p_mag_mean)
+                score += 0.15 * mag_ratio
+
+            # 5. Magnitude std similarity (0-0.10)
+            if p_mag_std > 0:
+                std_ratio = min(g_mag_std, p_mag_std) / max(g_mag_std, p_mag_std)
+                score += 0.10 * std_ratio
+
+            # 6. Peak magnitude sanity check (0-0.10)
             threshold = profile.get("detection_threshold_uT", 100)
-            min_samples = profile.get("min_active_samples", 5)
+            if g_mag_max >= threshold * 0.4:
+                score += 0.10
+            elif g_mag_max >= threshold * 0.2:
+                score += 0.05
 
-            # Count recent samples above threshold
-            recent = list(self.buffer)[-min_samples * 2:]
-            above = sum(1 for s in recent if s["mag"] > threshold)
+            all_scores.append((name, score))
 
-            if above >= min_samples:
-                # Cooldown check
-                last = self.last_detection.get(name, 0)
-                if now - last < DETECTION_COOLDOWN:
-                    continue
+            if score > best_score:
+                best_score = score
+                best_name = name
 
-                # Compute a rough confidence (0.5 – 1.0)
-                confidence = min(1.0, 0.5 + (above / len(recent)) * 0.5)
+        # Print top 3 matches for debugging
+        all_scores.sort(key=lambda x: x[1], reverse=True)
+        top3 = all_scores[:3]
+        print(f"    Top 3: " + " | ".join(f"{n}={s:.3f}" for n, s in top3))
 
-                # Extra axis-match bonus
-                most_active = profile.get("most_active_axis", "x")
-                vals = [abs(s[most_active]) for s in recent]
-                if np.mean(vals) > threshold * 0.3:
-                    confidence = min(1.0, confidence + 0.1)
+        # Require minimum score AND gap between #1 and #2
+        if best_name and best_score >= 0.40:
+            second_score = all_scores[1][1] if len(all_scores) > 1 else 0
+            gap = best_score - second_score
 
-                detections.append({
-                    "motion": name,
-                    "detected": True,
-                    "confidence": round(confidence, 2),
-                })
-                self.last_detection[name] = now
+            # Reject near-ties unconditionally, or small gaps with low scores
+            if gap < 0.005 or (gap < 0.03 and best_score < 0.55):
+                print(f"    -> Ambiguous (gap={gap:.3f}) — rejected.")
+                return None
 
-        # If multiple detections, pick the highest confidence
-        if len(detections) > 1:
-            detections.sort(key=lambda d: d["confidence"], reverse=True)
-            return [detections[0]]
-
-        return detections
+            confidence = min(1.0, best_score / 0.80)
+            print(f"    -> {best_name} (score={best_score:.3f}, gap={gap:.3f}, confidence={confidence:.0%})")
+            return {
+                "motion": best_name,
+                "detected": True,
+                "confidence": round(confidence, 2),
+            }
+        return None
 
 
 # ── WebSocket server ──────────────────────────────────────
@@ -220,20 +425,19 @@ async def serial_reader(port: str, raw_mode: bool = False, baud_rate: int = BAUD
             y_raw = data.get("y", 0)
             z_raw = data.get("z", 0)
 
-            # Subtract baseline
-            x = x_raw - baseline.get("x", 0)
-            y = y_raw - baseline.get("y", 0)
-            z = z_raw - baseline.get("z", 0)
-            mag = math.sqrt(x * x + y * y + z * z)
-
             sample_count += 1
 
             if raw_mode:
                 # Raw mode: just print values for hardware testing
+                # Quick baseline subtraction for display only
+                x_d = x_raw - baseline.get("x", 0)
+                y_d = y_raw - baseline.get("y", 0)
+                z_d = z_raw - baseline.get("z", 0)
+                mag_d = math.sqrt(x_d * x_d + y_d * y_d + z_d * z_d)
                 print(
                     f"  #{sample_count:>5}  "
                     f"x={x_raw:>8.1f}  y={y_raw:>8.1f}  z={z_raw:>8.1f}  "
-                    f"(cal: x={x:>7.1f} y={y:>7.1f} z={z:>7.1f}  |mag|={mag:>7.1f})"
+                    f"(cal: x={x_d:>7.1f} y={y_d:>7.1f} z={z_d:>7.1f}  |mag|={mag_d:>7.1f})"
                 )
                 # Also broadcast raw data so the webapp can display it
                 await broadcast({
@@ -241,18 +445,24 @@ async def serial_reader(port: str, raw_mode: bool = False, baud_rate: int = BAUD
                     "x": round(x_raw, 2),
                     "y": round(y_raw, 2),
                     "z": round(z_raw, 2),
-                    "mag": round(mag, 2),
+                    "mag": round(mag_d, 2),
                 })
                 continue
 
-            # Detection mode
-            events = detector.add_sample(x, y, z)
+            # Detection mode — pass RAW readings; detector does its
+            # own live-calibration (per-recording style baseline)
+            events = detector.add_sample(x_raw, y_raw, z_raw)
 
             # Print magnitude periodically so you can see the sensor is alive
             if sample_count % 25 == 0:
+                # Use detector's live baseline for display
+                x_c = x_raw - detector._live_offset_x
+                y_c = y_raw - detector._live_offset_y
+                z_c = z_raw - detector._live_offset_z
+                mag_c = math.sqrt(x_c * x_c + y_c * y_c + z_c * z_c)
                 print(
-                    f"  📊 #{sample_count:>5}  |mag|={mag:>7.1f} µT  "
-                    f"(x={x:>7.1f} y={y:>7.1f} z={z:>7.1f})"
+                    f"  📊 #{sample_count:>5}  |mag|={mag_c:>7.1f} µT  "
+                    f"(x={x_c:>7.1f} y={y_c:>7.1f} z={z_c:>7.1f})"
                 )
 
             for event in events:
@@ -264,10 +474,14 @@ async def serial_reader(port: str, raw_mode: bool = False, baud_rate: int = BAUD
 
             # Periodic heartbeat (every ~2s) so clients know we're alive
             if sample_count % 50 == 0:
+                x_h = x_raw - detector._live_offset_x
+                y_h = y_raw - detector._live_offset_y
+                z_h = z_raw - detector._live_offset_z
+                mag_h = math.sqrt(x_h * x_h + y_h * y_h + z_h * z_h)
                 await broadcast({
                     "heartbeat": True,
                     "samples": sample_count,
-                    "mag": round(mag, 2),
+                    "mag": round(mag_h, 2),
                 })
 
     except KeyboardInterrupt:

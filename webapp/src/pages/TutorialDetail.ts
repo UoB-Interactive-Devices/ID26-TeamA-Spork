@@ -74,7 +74,7 @@ export function createTutorialDetail(): HTMLElement {
 
   const observer = new MutationObserver(() => {
     if (page.classList.contains('active')) {
-      const motion = (page.dataset.motion ?? 'circle') as MotionType;
+      const motion = (page.dataset.motion ?? 'stir') as MotionType;
       setupDetail(page, motion);
       // Start listening for motion events
       motionHandler = createMotionListener(page, motion);

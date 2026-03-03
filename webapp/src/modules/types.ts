@@ -56,11 +56,18 @@ export interface MotionProfilesData {
 
 /** Game motion types the player can perform */
 export type MotionType =
-  | 'circle'
-  | 'left_right'
+  | 'coffee_grinder'
+  | 'pour'
   | 'press_down'
   | 'scoop'
+  | 'sieve'
   | 'squeeze'
+  | 'stir'
+  | 'tea_bag'
+  | 'whisk'
+  // Legacy motions (single recording)
+  | 'circle'
+  | 'left_right'
   | 'up_down'
   | 'w_motion';
 

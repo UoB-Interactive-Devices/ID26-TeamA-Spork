@@ -8,7 +8,11 @@ import type { SensorData, MotionProfilesData, MotionType, MotionProfile } from '
 
 const BUFFER_SIZE = 50; // ~2 seconds at 25Hz
 const GAME_MOTIONS: MotionType[] = [
-  'circle', 'left_right', 'press_down', 'scoop', 'squeeze', 'up_down', 'w_motion',
+  // Primary motions (multi-recording profiles)
+  'coffee_grinder', 'pour', 'press_down', 'scoop', 'sieve',
+  'squeeze', 'stir', 'tea_bag', 'whisk',
+  // Legacy motions
+  'circle', 'left_right', 'up_down', 'w_motion',
 ];
 
 class MotionDetector {
@@ -56,8 +60,8 @@ class MotionDetector {
 
       const count = this.consecutiveAbove.get(motionName) ?? 0;
 
-      if (data.magnitude >= profile.detection_threshold_uT * 0.6) {
-        // Use a softer threshold (60%) for better gameplay responsiveness
+      if (data.magnitude >= profile.detection_threshold_uT) {
+        // Use full threshold (matches bridge.py detection logic)
         this.consecutiveAbove.set(motionName, count + 1);
       } else {
         this.consecutiveAbove.set(motionName, Math.max(0, count - 1));

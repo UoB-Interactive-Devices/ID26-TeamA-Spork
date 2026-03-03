@@ -9,38 +9,47 @@
 import type { GameLevel, MotionType } from './types';
 
 export const MOTION_LABELS: Record<MotionType, { label: string; emoji: string; description: string }> = {
-  circle:     { label: 'Circle',     emoji: '🔄', description: 'Move in a circular stirring motion' },
-  left_right: { label: 'Left-Right', emoji: '↔️', description: 'Sway the tool side to side' },
-  press_down: { label: 'Press Down', emoji: '⬇️', description: 'Press the tool firmly downward' },
-  scoop:      { label: 'Scoop',      emoji: '🥄', description: 'Scoop upward in a smooth arc' },
-  squeeze:    { label: 'Squeeze',    emoji: '✊', description: 'Squeeze the tool firmly' },
-  up_down:    { label: 'Up-Down',    emoji: '↕️', description: 'Dip the tool up and down rhythmically' },
-  w_motion:   { label: 'W-Motion',   emoji: '〰️', description: 'Trace a W shape with the tool' },
+  // Primary motions (multi-recording profiles)
+  coffee_grinder: { label: 'Grind',      emoji: '⚙️',  description: 'Rotate the grinder handle in circles' },
+  pour:           { label: 'Pour',       emoji: '🫗',  description: 'Tilt and pour steadily' },
+  press_down:     { label: 'Press Down', emoji: '⬇️',  description: 'Press the tool firmly downward' },
+  scoop:          { label: 'Scoop',      emoji: '🥄',  description: 'Scoop upward in a smooth arc' },
+  sieve:          { label: 'Sieve',      emoji: '🪣',  description: 'Shake side to side to sieve' },
+  squeeze:        { label: 'Squeeze',    emoji: '✊',  description: 'Squeeze the tool firmly' },
+  stir:           { label: 'Stir',       emoji: '🥄',  description: 'Stir in quick circular motions' },
+  tea_bag:        { label: 'Tea Bag',    emoji: '🍵',  description: 'Dip the tea bag up and down' },
+  whisk:          { label: 'Whisk',      emoji: '🥚',  description: 'Whisk rapidly back and forth' },
+  // Legacy motions
+  circle:         { label: 'Circle',     emoji: '🔄',  description: 'Move in a circular stirring motion' },
+  left_right:     { label: 'Left-Right', emoji: '↔️',  description: 'Sway the tool side to side' },
+  up_down:        { label: 'Up-Down',    emoji: '↕️',  description: 'Dip the tool up and down rhythmically' },
+  w_motion:       { label: 'W-Motion',   emoji: '〰️', description: 'Trace a W shape with the tool' },
 };
 
 export const LEVELS: GameLevel[] = [
   {
     id: 1,
-    name: 'Tutorial',
-    description: 'Learn the basics — perform each motion one at a time.',
+    name: 'Tea Time',
+    description: 'Learn the basics — make a simple cup of tea.',
     passingScore: 50,
     steps: [
-      { motion: 'left_right', label: 'Stir the pot', duration: 8, description: 'Sway left and right to stir' },
-      { motion: 'scoop',      label: 'Scoop the tea', duration: 8, description: 'Scoop upward gently' },
-      { motion: 'press_down', label: 'Press the plunger', duration: 8, description: 'Press down firmly' },
+      { motion: 'scoop',      label: 'Scoop tea leaves',   duration: 8, description: 'Scoop the leaves into the cup' },
+      { motion: 'pour',       label: 'Pour hot water',      duration: 8, description: 'Pour water over the leaves' },
+      { motion: 'tea_bag',    label: 'Dip the tea bag',     duration: 8, description: 'Dip up and down gently' },
+      { motion: 'stir',       label: 'Stir it up',          duration: 8, description: 'Stir in a quick circle' },
     ],
   },
   {
     id: 2,
-    name: 'Play',
-    description: 'Chain multiple motions together — the drink is getting complex!',
+    name: 'Barista Basics',
+    description: 'Chain motions together — make a proper coffee!',
     passingScore: 60,
     steps: [
-      { motion: 'circle',     label: 'Whisk matcha',     duration: 7, description: 'Circular whisking motion' },
-      { motion: 'up_down',    label: 'Dip tea bag',      duration: 7, description: 'Rhythmic dipping' },
-      { motion: 'left_right', label: 'Stir in sugar',    duration: 6, description: 'Side to side stirring' },
-      { motion: 'scoop',      label: 'Scoop foam',       duration: 6, description: 'Gentle scooping arc' },
-      { motion: 'press_down', label: 'Press French press', duration: 6, description: 'Push down steadily' },
+      { motion: 'coffee_grinder', label: 'Grind the beans',   duration: 7, description: 'Grind coffee beans' },
+      { motion: 'scoop',           label: 'Scoop grounds',     duration: 7, description: 'Scoop into the filter' },
+      { motion: 'pour',            label: 'Pour water',        duration: 6, description: 'Pour hot water over grounds' },
+      { motion: 'stir',            label: 'Stir gently',       duration: 6, description: 'Stir to bloom' },
+      { motion: 'press_down',      label: 'Press the plunger', duration: 6, description: 'Push down steadily' },
     ],
   },
   {
@@ -49,13 +58,13 @@ export const LEVELS: GameLevel[] = [
     description: 'The full routine — tight timing, precise motions!',
     passingScore: 70,
     steps: [
-      { motion: 'scoop',      label: 'Scoop grounds',  duration: 5, description: 'Quick scoop' },
-      { motion: 'circle',     label: 'Bloom the grounds', duration: 5, description: 'Circular pour' },
-      { motion: 'w_motion',   label: 'W-pattern pour', duration: 5, description: 'Trace a W shape' },
-      { motion: 'up_down',    label: 'Agitate',        duration: 5, description: 'Up and down motion' },
-      { motion: 'squeeze',    label: 'Squeeze filter',  duration: 5, description: 'Squeeze firmly' },
-      { motion: 'press_down', label: 'Final press',     duration: 5, description: 'Press down hard' },
-      { motion: 'left_right', label: 'Final stir',      duration: 4, description: 'Quick side stir' },
+      { motion: 'coffee_grinder', label: 'Grind beans',      duration: 5, description: 'Grind fresh beans' },
+      { motion: 'sieve',          label: 'Sieve the grounds', duration: 5, description: 'Sieve out coarse bits' },
+      { motion: 'scoop',          label: 'Scoop into filter', duration: 5, description: 'Precise scoop' },
+      { motion: 'pour',           label: 'Pour over',         duration: 5, description: 'Steady pour' },
+      { motion: 'whisk',          label: 'Whisk the milk',    duration: 5, description: 'Froth the milk' },
+      { motion: 'squeeze',        label: 'Squeeze the bag',   duration: 5, description: 'Squeeze out the last drops' },
+      { motion: 'stir',           label: 'Final stir',        duration: 4, description: 'Quick finishing stir' },
     ],
   },
 ];
