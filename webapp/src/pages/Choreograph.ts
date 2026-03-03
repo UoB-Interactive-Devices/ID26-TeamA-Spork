@@ -123,10 +123,10 @@ export function createChoreograph(): HTMLElement {
         color: var(--accent-cream);
         animation: fade-in-up var(--duration-fast) var(--ease-spring) both;
       `;
-      pill.textContent = `${MOTION_META[motion].emoji} ${MOTION_META[motion].label}`;
+      pill.innerHTML = `<img class="ch-pill-asset" src="${MOTION_META[motion].asset}" alt="${MOTION_META[motion].label}" /><span>${MOTION_META[motion].label}</span>`;
       recordedList.appendChild(pill);
 
-      liveFeed.textContent = `${MOTION_META[motion].emoji} ${MOTION_META[motion].label} detected!`;
+      liveFeed.innerHTML = `<span class="ch-live-feed-content"><img class="ch-live-feed-asset" src="${MOTION_META[motion].asset}" alt="${MOTION_META[motion].label}" /> ${MOTION_META[motion].label} detected!</span>`;
     };
     document.addEventListener('motion-detected', motionHandler);
   }

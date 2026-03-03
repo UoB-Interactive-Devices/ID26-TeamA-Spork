@@ -1,17 +1,3 @@
-/*  ────────────────────────────────────────────────────────
-    Spork — Global Styles
-    "A Little to the Left" aesthetic: warm, cosy, hand-drawn
-    ──────────────────────────────────────────────────────── */
-
-/* ── Custom Font: Buckwheat ────────────────────────────── */
-@font-face {
-  font-family: 'Buckwheat';
-  src: url('/assets/Buckwheat TC Sans Painted.otf') format('opentype');
-  font-weight: normal;
-  font-style: normal;
-  font-display: swap;
-}
-
 @font-face {
   font-family: 'galaxy';
   src: url('/assets/GalaxieCopernicus-BookItalic.ttf') format('truetype');
@@ -347,6 +333,12 @@ p {
   margin-bottom: var(--space-sm);
 }
 
+.card__asset {
+  width: 56px;
+  height: 56px;
+  object-fit: contain;
+}
+
 .card__title {
   font-family: var(--font-display);
   font-size: 1.2rem;
@@ -440,6 +432,38 @@ p {
   font-size: 3.5rem;
   margin-bottom: var(--space-sm);
   animation: gentle-bounce 2s ease-in-out infinite;
+}
+
+.motion-prompt__asset {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.tutorial-detail__asset {
+  width: 96px;
+  height: 96px;
+  object-fit: contain;
+}
+
+.ch-pill-asset {
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  vertical-align: middle;
+  margin-right: 6px;
+}
+
+.ch-live-feed-content {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.ch-live-feed-asset {
+  width: 26px;
+  height: 26px;
+  object-fit: contain;
 }
 
 .motion-prompt__label {
@@ -943,7 +967,7 @@ p {
 .play-round {
   position: relative;
   z-index: 1;
-  width: min(760px, 100%);
+  width: min(900px, 100%);
   height: 100%;
   display: flex;
   flex-direction: column;
@@ -1013,12 +1037,24 @@ p {
 .play-stamp:nth-child(7) { transform: rotate(11deg) translateY(14px); }
 
 .play-stamp__inner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
   height: 100%;
   border-radius: 8px;
   background: var(--stamp-color, #8a8a8a);
   filter: grayscale(100%) brightness(0.6);
   transition: filter var(--duration-mid), transform 220ms var(--ease-spring);
+}
+
+.play-stamp__asset {
+  width: 72%;
+  height: 72%;
+  object-fit: contain;
+  user-select: none;
+  pointer-events: none;
 }
 
 .stamp-1 { --stamp-color: #8faa6e; }  /* olive green */
@@ -1048,7 +1084,7 @@ p {
 }
 
 .play-cup-wrap {
-  margin-top: auto;
+  margin-top: 6em;
   padding-bottom: clamp(0.4rem, 2vh, 1.25rem);
   width: 100%;
   display: flex;
@@ -1090,7 +1126,134 @@ p {
   backdrop-filter: blur(3px);
 }
 
+/* ── Grinder Tutorial Animation ────────────────────────── */
+.grinder-tutorial {
+  width: 100%;
+  background-color: #f5e6a3;
+  border-radius: var(--radius-lg);
+  padding: var(--space-lg);
+  transition: background-color 0.4s ease;
+  box-shadow: var(--shadow-soft);
+}
+
+.grinder-tutorial.success {
+  background-color: #8faa6e;
+}
+
+.grinder-tutorial.wrong {
+  background-color: #e8a0a0;
+  animation: grinder-flash 0.3s ease;
+}
+
+.grinder-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.grinder-instruction {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  color: #3d2e1e;
+  margin: 0;
+  font-weight: 600;
+}
+
+.grinder-container {
+  position: relative;
+  width: clamp(200px, 50vw, 400px);
+  height: clamp(210px, 52.5vw, 420px);
+  margin: var(--space-md) 0;
+}
+
+.grinder-layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  object-position: center;
+  draggable: false;
+}
+
+.grinder-body {
+  z-index: 1;
+}
+
+.grinder-full {
+  z-index: 2;
+}
+
+.grinder-full.hidden {
+  display: none;
+}
+
+.grinder-handle {
+  z-index: 3;
+  transform-origin: 95% 50%;
+  transform-box: fill-box;
+  left: -45%;
+  transform: scaleX(-1);
+  /* top: 20%; */
+}
+
+.grinder-hint-arrow {
+  width: 60px;
+  height: 60px;
+  margin-top: var(--space-md);
+  border: 3px solid rgba(61, 46, 30, 0.3);
+  border-radius: 50%;
+  position: relative;
+  animation: grinder-circle-pulse 2s ease-in-out infinite;
+}
+
+.grinder-hint-arrow::after {
+  content: '';
+  position: absolute;
+  width: 0;
+  height: 0;
+  border-left: 8px solid transparent;
+  border-right: 0 solid transparent;
+  border-bottom: 12px solid rgba(61, 46, 30, 0.4);
+  top: 8px;
+  right: 8px;
+  animation: grinder-arrow-rotate 2s linear infinite;
+}
+
 /* ── Keyframes ─────────────────────────────────────────── */
+@keyframes grindIdle {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes grindSuccess {
+  0%   { transform: rotate(0deg); }
+  60%  { transform: rotate(580deg); }
+  100% { transform: rotate(720deg); }
+}
+
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  25%      { transform: translateX(-8px); }
+  75%      { transform: translateX(8px); }
+}
+
+@keyframes grinder-flash {
+  0%   { background-color: #e8a0a0; }
+  100% { background-color: #f5e6a3; }
+}
+
+@keyframes grinder-circle-pulse {
+  0%, 100% { opacity: 0.3; transform: scale(1); }
+  50%      { opacity: 0.6; transform: scale(1.1); }
+}
+
+@keyframes grinder-arrow-rotate {
+  0%   { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @keyframes stamp-pop {
   0% { transform: scale(1); }
   45% { transform: scale(1.1); }

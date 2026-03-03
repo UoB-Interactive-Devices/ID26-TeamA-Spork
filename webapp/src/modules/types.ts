@@ -1,5 +1,5 @@
 /**
- * Shared type definitions for the Spork Motion Game
+ * Shared type definitions for the Motion Game
  */
 
 /** Raw magnetometer reading from Arduino */
@@ -56,13 +56,16 @@ export interface MotionProfilesData {
 
 /** Game motion types the player can perform */
 export type MotionType =
-  | 'circle'
-  | 'left_right'
+  | 'grinding'
+  | 'pour'
   | 'press_down'
   | 'scoop'
   | 'squeeze'
-  | 'up_down'
-  | 'w_motion';
+  | 'stir'
+  | 'whisk'
+  // Legacy motions (single recording)
+  | 'left_right'
+  | 'up_down';
 
 /** A single step in a game level */
 export interface LevelStep {

@@ -7,7 +7,7 @@
  *  - Step progress indicator
  */
 import { router } from './router.ts';
-import { LEVELS, type MotionType, type GameLevel } from '../types/motion.types.ts';
+import { LEVELS, MOTION_META, type MotionType, type GameLevel } from '../types/motion.types.ts';
 import { CupFill } from '../components/CupFill.ts';
 import { MotionPrompt } from '../components/MotionPrompt.ts';
 
@@ -79,10 +79,17 @@ function startLevel(page: HTMLElement): void {
   });
 
   const stamps: HTMLElement[] = Array.from({ length: VISUAL_STAMP_COUNT }, (_, i) => {
+    const motion = level.steps[i]?.motion;
+    const assetSrc = motion ? MOTION_META[motion].asset : '';
+    const assetAlt = motion ? MOTION_META[motion].label : `Stamp ${i + 1}`;
     const stamp = document.createElement('div');
     stamp.className = `play-stamp ${stampVisualClasses[i]}`;
     stamp.title = `Stamp ${i + 1}`;
-    stamp.innerHTML = `<div class="play-stamp__inner"></div>`;
+    stamp.innerHTML = `
+      <div class="play-stamp__inner">
+        <img class="play-stamp__asset" src="${assetSrc}" alt="${assetAlt}" />
+      </div>
+    `;
     stampsEl.appendChild(stamp);
     return stamp;
   });

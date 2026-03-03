@@ -1,9 +1,12 @@
 /**
  * TutorialDetail page — shows what motion to perform for a specific prop,
  * with a visual demonstration area and real-time sensor feedback.
+ *
+ * Special case: "grinding" motion uses the GrinderTutorial component.
  */
 import { router } from './router.ts';
 import { MOTION_META, type MotionType } from '../types/motion.types.ts';
+import { GrinderTutorial } from '../components/GrinderTutorial.ts';
 
 export function createTutorialDetail(): HTMLElement {
   const page = document.createElement('div');
@@ -21,7 +24,10 @@ export function createTutorialDetail(): HTMLElement {
       <p id="td-label" class="subtitle"></p>
       <p id="td-desc"></p>
 
-      <!-- Visual demonstration placeholder — swap for animation/video later -->
+      <!-- Special grinder demo for circle motion — will be populated by setupDetail -->
+      <div id="td-grinder-container"></div>
+
+      <!-- Visual demonstration placeholder for other motions -->
       <div id="td-demo" class="tutorial-demo-area" style="
         width: 100%;
         height: 180px;
@@ -71,19 +77,37 @@ export function createTutorialDetail(): HTMLElement {
 
   /* ── Update content when page becomes active ── */
   let motionHandler: ((e: Event) => void) | null = null;
+  let grinder: GrinderTutorial | null = null;
 
   const observer = new MutationObserver(() => {
     if (page.classList.contains('active')) {
-      const motion = (page.dataset.motion ?? 'circle') as MotionType;
+      const motion = (page.dataset.motion ?? 'stir') as MotionType;
       setupDetail(page, motion);
-      // Start listening for motion events
-      motionHandler = createMotionListener(page, motion);
-      document.addEventListener('motion-detected', motionHandler);
+
+      if (motion === 'grinding') {
+        // Use grinder component for grinding motion
+        const grinderContainer = page.querySelector('#td-grinder-container') as HTMLElement;
+        grinder = new GrinderTutorial(grinderContainer);
+        grinder.start();
+        // Hide generic demo and feedback
+        (page.querySelector('#td-demo') as HTMLElement).style.display = 'none';
+        (page.querySelector('#td-feedback') as HTMLElement).style.display = 'none';
+      } else {
+        // Use generic demo for other motions
+        (page.querySelector('#td-demo') as HTMLElement).style.display = 'flex';
+        (page.querySelector('#td-feedback') as HTMLElement).style.display = 'flex';
+        motionHandler = createMotionListener(page, motion);
+        document.addEventListener('motion-detected', motionHandler);
+      }
     } else {
       // Clean up listener when leaving
       if (motionHandler) {
         document.removeEventListener('motion-detected', motionHandler);
         motionHandler = null;
+      }
+      if (grinder) {
+        grinder.destroy();
+        grinder = null;
       }
     }
   });
@@ -94,7 +118,7 @@ export function createTutorialDetail(): HTMLElement {
 
 function setupDetail(page: HTMLElement, motion: MotionType): void {
   const meta = MOTION_META[motion];
-  (page.querySelector('#td-emoji') as HTMLElement).textContent = meta.emoji;
+  (page.querySelector('#td-emoji') as HTMLElement).innerHTML = `<img class="tutorial-detail__asset" src="${meta.asset}" alt="${meta.label}" />`;
   (page.querySelector('#td-prop') as HTMLElement).textContent = meta.prop;
   (page.querySelector('#td-label') as HTMLElement).textContent = meta.label;
   (page.querySelector('#td-desc') as HTMLElement).textContent = meta.description;

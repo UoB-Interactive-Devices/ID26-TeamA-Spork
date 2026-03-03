@@ -34,7 +34,7 @@ export function createTutorial(): HTMLElement {
     card.setAttribute('tabindex', '0');
 
     card.innerHTML = `
-      <div class="card__emoji">${meta.emoji}</div>
+      <div class="card__emoji"><img class="card__asset" src="${meta.asset}" alt="${meta.label}" /></div>
       <div class="card__title">${meta.prop}</div>
       <div class="card__subtitle">${meta.label} — ${meta.description}</div>
     `;

@@ -106,7 +106,7 @@ class GameRenderer {
     ctx.fillStyle = '#E8D5B7';
     ctx.font = 'bold 48px "Segoe UI", system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText('☕ Spork', w / 2, h * 0.2);
+    ctx.fillText('While It Steeps', w / 2, h * 0.2);
 
     ctx.font = '18px "Segoe UI", system-ui, sans-serif';
     ctx.fillStyle = '#A89279';
@@ -236,7 +236,7 @@ class GameRenderer {
     ctx.fillStyle = '#E8D5B7';
     ctx.font = 'bold 28px "Segoe UI", system-ui, sans-serif';
     const label = MOTION_LABELS[step.motion];
-    ctx.fillText(`${label.emoji} ${step.label}`, w / 2, 100);
+    ctx.fillText(`${label.label}: ${step.label}`, w / 2, 100);
 
     ctx.fillStyle = '#888';
     ctx.font = '15px "Segoe UI", system-ui, sans-serif';
@@ -439,7 +439,7 @@ class GameRenderer {
 
         ctx.fillStyle = '#E8D5B7';
         ctx.font = '20px "Segoe UI", system-ui, sans-serif';
-        ctx.fillText(info.emoji, x, y + 10);
+        ctx.fillText(info.label, x, y + 10);
 
         ctx.fillStyle = '#888';
         ctx.font = '9px "Segoe UI", system-ui, sans-serif';
@@ -558,7 +558,7 @@ class GameRenderer {
     const r = radius * 0.6;
 
     switch (motion) {
-      case 'circle':
+      case 'grinding':
         gx = Math.cos(t * 3) * r;
         gy = Math.sin(t * 3) * r;
         break;
@@ -583,13 +583,11 @@ class GameRenderer {
         gx = squeeze * r * 0.3;
         gy = squeeze * r * 0.3;
         break;
-      case 'w_motion':
-        // W shape trace
-        const phase = (t * 2) % 4;
-        if (phase < 1) { gx = -r + phase * r; gy = -r * phase; }
-        else if (phase < 2) { gx = (phase - 1) * r; gy = -r + (phase - 1) * r; }
-        else if (phase < 3) { gx = (phase - 2) * r; gy = -(phase - 2) * r; }
-        else { gx = (phase - 3) * r; gy = -r + (phase - 3) * r; }
+      case 'pour':
+      case 'stir':
+      case 'whisk':
+        gx = Math.sin(t * 3) * r * 0.6;
+        gy = Math.cos(t * 3) * r * 0.6;
         break;
     }
 
@@ -602,7 +600,7 @@ class GameRenderer {
     ctx.fillStyle = '#C4A35A';
     ctx.font = '10px "Segoe UI", system-ui, sans-serif';
     ctx.textAlign = 'center';
-    ctx.fillText(MOTION_LABELS[motion].emoji, cx, cy + radius + 18);
+    ctx.fillText(MOTION_LABELS[motion].label, cx, cy + radius + 18);
   }
 
   /** Draw a motion icon (static) for the tutorial cards */
@@ -613,7 +611,7 @@ class GameRenderer {
     ctx.font = `${size}px "Segoe UI", system-ui, sans-serif`;
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(MOTION_LABELS[motion].emoji, cx, cy);
+    ctx.fillText(MOTION_LABELS[motion].label, cx, cy);
     ctx.textBaseline = 'alphabetic';
   }
 
