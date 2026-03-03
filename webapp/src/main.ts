@@ -19,7 +19,7 @@ function init(): void {
   const savedTheme = localStorage.getItem('spork-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
 
-  console.log('☕ Spork — Initializing…');
+  console.log('While It Steeps — Initializing…');
 
   const app = document.getElementById('app')!;
 
@@ -45,7 +45,7 @@ function init(): void {
 
   router.onNavigate((_from, to) => console.log(`📄 Page → ${to}`));
 
-  console.log('☕ Spork — Ready!');
+  console.log('☕ While It Steeps — Ready!');
 }
 
 init();

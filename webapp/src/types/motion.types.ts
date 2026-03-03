@@ -1,5 +1,5 @@
 /**
- * Shared type definitions for the Spork Motion Brewing Game.
+ * Shared type definitions for the Motion Brewing Game.
  */
 
 /* ── Sensor Types ──────────────────────────────────────── */
@@ -85,19 +85,14 @@ export const ALL_MOTIONS: MotionType[] = [
 
 /** Human-friendly labels for each motion */
 export const MOTION_META: Record<MotionType, { label: string; emoji: string; description: string; prop: string }> = {
-  coffee_grinder: { label: 'Grind',      emoji: '⚙️',  description: 'Rotate the grinder handle in circles',    prop: 'Coffee Grinder' },
-  pour:           { label: 'Pour',       emoji: '🫗',  description: 'Tilt and pour steadily',                  prop: 'Kettle' },
-  press_down:     { label: 'Press Down', emoji: '⬇️',  description: 'Press the tool firmly downward',          prop: 'French Press' },
-  scoop:          { label: 'Scoop',      emoji: '🥄', description: 'Scoop upward in a smooth arc',            prop: 'Sieve' },
-  sieve:          { label: 'Sieve',      emoji: '🪣',  description: 'Shake side to side to sieve',             prop: 'Sieve' },
-  squeeze:        { label: 'Squeeze',    emoji: '✊', description: 'Squeeze the tool firmly',                 prop: 'Tea Bag' },
-  stir:           { label: 'Stir',       emoji: '🥄', description: 'Stir in quick circular motions',          prop: 'Stirring Spoon' },
-  tea_bag:        { label: 'Tea Bag',    emoji: '🍵', description: 'Dip the tea bag up and down',             prop: 'Tea Bag' },
-  whisk:          { label: 'Whisk',      emoji: '🥚', description: 'Whisk rapidly back and forth',            prop: 'Whisk' },
-  circle:         { label: 'Circle',     emoji: '🔄', description: 'Move in a circular stirring motion',      prop: 'Matcha Whisk' },
-  left_right:     { label: 'Left-Right', emoji: '↔️',  description: 'Sway the tool side to side',              prop: 'Stirring Spoon' },
-  up_down:        { label: 'Up-Down',    emoji: '↕️',  description: 'Dip the tool up and down rhythmically',   prop: 'Kettle' },
-  w_motion:       { label: 'W-Motion',   emoji: '〰️', description: 'Trace a W shape with the tool',           prop: 'Pour-Over Kettle' },
+  circle:     { label: 'Circle',     emoji: '🔄', description: 'Move in a circular motion to grind the coffee beans',     prop: 'Coffee Grinder' },
+  left_right: { label: 'Left-Right', emoji: '↔️',  description: 'Sway the tool side to side',             prop: 'Sieve' },
+  press_down: { label: 'Press Down', emoji: '⬇️',  description: 'Press the tool firmly downward',         prop: 'French Press' },
+  scoop:      { label: 'Scoop',      emoji: '🥄', description: 'Scoop upward in a smooth arc',           prop: 'Spoon' },
+  squeeze:    { label: 'Squeeze',    emoji: '🧊', description: 'Squeeze to get some ice cubes',                prop: 'Tongs' },
+  up_down:    { label: 'Up-Down',    emoji: '🍵',  description: 'Dip the tool up and down rhythmically',  prop: 'Teabag' },
+  pour:   { label: 'Pour',   emoji: '🫖', description: 'Pour to get some water/milk to your drink',          prop: 'Pour' },
+  w_motion:   { label: 'W-Motion',   emoji: '🧋', description: 'Whisk to get a smooth texture',          prop: 'Whisk' },
 };
 
 /* ── Level Definitions ─────────────────────────────────── */

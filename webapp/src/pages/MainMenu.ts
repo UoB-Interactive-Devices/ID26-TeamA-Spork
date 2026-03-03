@@ -3,12 +3,12 @@
  *
  * ┌─────────────────────────────┐
  * │                    ♪ Music  │  ← BGM picker (top-right)
- * │         ☕ Spork             │
+ * │         ☕ While It Steeps  │
  * │    the motion brewing game  │
  * │                             │
- * │      [ ▶ Play       ]      │
- * │      [ 📖 Tutorial  ]      │
- * │      [ 🎨 Create    ]      │
+ * │      [ ▶ Play       ]       │
+ * │      [ 📖 Tutorial  ]       │
+ * │      [ 🎨 Create    ]       │
  * │                             │
  * │  ⬤ Connected                │  ← Arduino status (bottom-left)
  * └─────────────────────────────┘
