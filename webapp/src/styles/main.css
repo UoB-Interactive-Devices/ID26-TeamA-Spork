@@ -420,6 +420,8 @@ p {
   flex-direction: column;
   align-items: center;
   gap: var(--space-md);
+  margin: auto;
+  margin-top: var(--space-2xl);
 }
 
 .stack--lg { gap: var(--space-lg); }
@@ -1222,19 +1224,25 @@ p {
 .level-select-bg {
   background-image: url('/assets/main_table.png');
   background-size: cover;
-  background-position: center;
+  background-position: center bottom;
+  justify-content: center;
+  align-items: center;
 }
 
 .tutorial-bg {
   background-image: url('/assets/main_table.png');
   background-size: cover;
-  background-position: center;
+  background-position: center bottom;
+  justify-content: center;
+  align-items: center;
 }
 
 .choreograph-bg {
   background-image: url('/assets/main_table.png');
   background-size: cover;
-  background-position: center;
+  background-position: center bottom;
+  justify-content: center;
+  align-items: center;
 }
 
 /* ── Play Page — game rounds with kitchen background ── */
@@ -1267,6 +1275,7 @@ p {
   flex-direction: column;
   align-items: center;
   padding-top: clamp(5.5rem, 10vh, 7rem);
+  margin:0 auto;
 }
 
 #play-title {
