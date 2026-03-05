@@ -1616,6 +1616,135 @@ p {
 .stagger-children > *:nth-child(6) { animation-delay: 400ms; }
 .stagger-children > *:nth-child(7) { animation-delay: 480ms; }
 
+/* ── Tutorial — "items on the table" layout ───────────── */
+#tutorial.page {
+  justify-content: flex-end;
+  padding-bottom: 14%;
+  background-color: #7e7f96;
+}
+
+.tutorial-header {
+  position: absolute;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  text-align: center;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.tutorial-header .subtitle {
+  margin-top: var(--space-xs);
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+}
+
+.tutorial-table-row {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-end;
+    justify-content: center;
+    gap: 40px;
+    width: 100%;
+    padding: 0 var(--space-xl);
+    bottom: 10%;
+    position: absolute;
+}
+
+.tutorial-tool-item {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+.tutorial-tool-item:hover,
+.tutorial-tool-item:focus-visible {
+  transform: translateY(-20px);
+  filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.3));
+  outline: none;
+}
+
+.tutorial-tool-item:hover .tutorial-tool-placemat,
+.tutorial-tool-item:focus-visible .tutorial-tool-placemat {
+  opacity: 1;
+}
+
+.tutorial-tool-placemat {
+  position: absolute;
+  top: -16px;
+  bottom: -16px;
+  left: -24px;
+  right: -24px;
+  background: rgba(245, 230, 163, 0.55);
+  border-radius: 12px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+.tutorial-tool-img {
+    position: relative;
+    z-index: 1;
+    height: 25em;
+    width: auto;
+    max-width: 20em;
+    object-fit: contain;
+    display: block;
+}
+
+.tutorial-tool-label {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  margin-top: var(--space-sm);
+  text-align: center;
+}
+
+.tutorial-tool-motion {
+  font-family: var(--font-display);
+  font-size: 1.75rem;
+  font-weight: 600;
+  color: var(--accent-warm);
+}
+
+.tutorial-tool-instruction {
+  font-size: 1.25rem;
+  color: var(--accent-cream);
+}
+
+@media (max-width: 600px) {
+  #tutorial.page {
+    padding-bottom: 10%;
+  }
+
+  .tutorial-table-row {
+    gap: 16px;
+    padding: 0 var(--space-md);
+  }
+
+  .tutorial-tool-img {
+    height: 130px;
+    max-width: 100px;
+  }
+
+  .tutorial-tool-motion {
+    font-size: 0.85rem;
+  }
+
+  .tutorial-tool-instruction {
+    font-size: 0.7rem;
+  }
+}
+
 /* ── Responsive ────────────────────────────────────────── */
 @media (max-width: 480px) {
   h1 { font-size: 2rem; }
