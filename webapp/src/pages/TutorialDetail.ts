@@ -83,6 +83,9 @@ export function createTutorialDetail(): HTMLElement {
     <!-- Radial flash overlay (success / wrong) -->
     <div id="td-flash" class="td-flash"></div>
 
+    <!-- Motion counter -->
+    <div id="td-counter" class="td-counter"></div>
+
     <!-- Success popup -->
     <div id="td-popup" class="td-popup hidden">
       <div class="td-popup__card">
@@ -90,6 +93,7 @@ export function createTutorialDetail(): HTMLElement {
         <p class="td-popup__text">You completed this motion.</p>
         <div class="td-popup__actions">
           <button class="btn btn--ghost btn--small" data-popup="stay">Try Again</button>
+          <button class="btn btn--ghost btn--small hidden" data-popup="redo">Redo Tutorial</button>
           <button class="btn btn--gold btn--small" data-popup="next">Next Tutorial</button>
         </div>
       </div>
@@ -103,6 +107,8 @@ export function createTutorialDetail(): HTMLElement {
   /* ── Popup buttons ── */
   page.querySelector('[data-popup="stay"]')!
     .addEventListener('click', () => handleStay(page));
+  page.querySelector('[data-popup="redo"]')!
+    .addEventListener('click', () => handleRedo(page));
   page.querySelector('[data-popup="next"]')!
     .addEventListener('click', () => handleNext(page));
 
@@ -113,12 +119,16 @@ export function createTutorialDetail(): HTMLElement {
   let pourTut: PourTutorial | null = null;
   let whiskTut: WhiskTutorial | null = null;
   let resolved = false; // whether the round already succeeded
+  let successCount = 0;  // number of successful motions (need 2 to pass)
+  const REQUIRED_SUCCESSES = 2;
 
   /* ── Activate / deactivate ── */
   const observer = new MutationObserver(() => {
     if (page.classList.contains('active')) {
       resolved = false;
+      successCount = 0;
       hidePopup(page);
+      updateCounter(page, 0, REQUIRED_SUCCESSES);
 
       const motion = (page.dataset.motion ?? 'stir') as MotionType;
       setupDetail(page, motion);
@@ -151,7 +161,16 @@ export function createTutorialDetail(): HTMLElement {
       // Arduino path
       if (serial.isConnected) {
         motionHandler = createMotionListener(page, motion, () => {
-          if (!resolved) { resolved = true; onSuccess(page); }
+          if (!resolved) {
+            successCount++;
+            updateCounter(page, successCount, REQUIRED_SUCCESSES);
+            if (successCount >= REQUIRED_SUCCESSES) {
+              resolved = true;
+              onSuccess(page);
+            } else {
+              flashRadial(page, 'success');
+            }
+          }
         });
         document.addEventListener('motion-detected', motionHandler);
       }
@@ -163,7 +182,16 @@ export function createTutorialDetail(): HTMLElement {
         if (!page.querySelector('#td-popup')!.classList.contains('hidden')) return;
         if (e.key === ' ' || e.key === 'Enter') {
           e.preventDefault();
-          if (!resolved) { resolved = true; onSuccess(page); }
+          if (!resolved) {
+            successCount++;
+            updateCounter(page, successCount, REQUIRED_SUCCESSES);
+            if (successCount >= REQUIRED_SUCCESSES) {
+              resolved = true;
+              onSuccess(page);
+            } else {
+              flashRadial(page, 'success');
+            }
+          }
         } else if (e.key.length === 1) {
           // Any printable key = wrong
           onWrong(page);
@@ -258,15 +286,37 @@ function onWrong(page: HTMLElement): void {
   flashRadial(page, 'wrong');
 }
 
+function updateCounter(page: HTMLElement, count: number, total: number): void {
+  const el = page.querySelector('#td-counter') as HTMLElement;
+  el.textContent = `${count} / ${total}`;
+}
+
 function showPopup(page: HTMLElement): void {
   const popup = page.querySelector('#td-popup') as HTMLElement;
   const currentMotion = (page.dataset.motion ?? 'grinding') as MotionType;
   const idx = TUTORIAL_ORDER.indexOf(currentMotion);
   const isLast = idx === TUTORIAL_ORDER.length - 1;
 
-  // Update button text when on last tutorial
+  const stayBtn = popup.querySelector('[data-popup="stay"]') as HTMLButtonElement;
+  const redoBtn = popup.querySelector('[data-popup="redo"]') as HTMLButtonElement;
   const nextBtn = popup.querySelector('[data-popup="next"]') as HTMLButtonElement;
-  nextBtn.textContent = isLast ? 'Back to Tutorials' : 'Next Tutorial';
+
+  if (isLast) {
+    // Last tutorial: show all 3 buttons
+    stayBtn.textContent = 'Try Again';
+    redoBtn.classList.remove('hidden');
+    redoBtn.textContent = 'Redo Tutorial';
+    nextBtn.textContent = 'Start Game';
+    (popup.querySelector('.td-popup__title') as HTMLElement).textContent = 'Tutorials Complete!';
+    (popup.querySelector('.td-popup__text') as HTMLElement).textContent =
+      'You\'ve practised all the motions. Ready to play?';
+  } else {
+    stayBtn.textContent = 'Try Again';
+    redoBtn.classList.add('hidden');
+    nextBtn.textContent = 'Next Tutorial';
+    (popup.querySelector('.td-popup__title') as HTMLElement).textContent = 'Nice work!';
+    (popup.querySelector('.td-popup__text') as HTMLElement).textContent = 'You completed this motion.';
+  }
 
   popup.classList.remove('hidden');
 }
@@ -280,6 +330,17 @@ function handleStay(page: HTMLElement): void {
   // Re-arm the page by toggling active class to retrigger the observer
   page.classList.remove('active');
   requestAnimationFrame(() => page.classList.add('active'));
+}
+
+function handleRedo(page: HTMLElement): void {
+  hidePopup(page);
+  // Start from the first tutorial again
+  page.classList.add('td-slide-out-left');
+  setTimeout(() => {
+    page.classList.remove('td-slide-out-left', 'active');
+    page.style.display = 'none';
+    router.go('tutorial-detail', { motion: TUTORIAL_ORDER[0] });
+  }, 450);
 }
 
 function handleNext(page: HTMLElement): void {
@@ -297,7 +358,7 @@ function handleNext(page: HTMLElement): void {
       router.go('tutorial-detail', { motion: nextMotion });
     }, 450);
   } else {
-    // Last tutorial — go back to tutorial list
-    router.go('tutorial');
+    // Last tutorial — go to gameplay
+    router.go('level-select');
   }
 }

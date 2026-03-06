@@ -1818,6 +1818,18 @@ p {
 }
 
 /* ── Tutorial Detail: radial flash overlay ─────────────── */
+
+.td-counter {
+  position: absolute;
+  top: 1.5rem;
+  right: 2rem;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  color: var(--bg-deep);
+  z-index: 10;
+  letter-spacing: 0.05em;
+}
+
 .td-flash {
   position: absolute;
   inset: 0;
@@ -1829,12 +1841,12 @@ p {
 }
 
 .td-flash--success {
-  background: radial-gradient(circle at center, rgba(143, 170, 123, 0.55) 0%, rgba(143, 170, 123, 0) 70%);
+  background: radial-gradient(circle at center, rgba(100, 200, 80, 0.85) 0%, rgba(100, 200, 80, 0) 75%);
   animation: td-radial-pop 0.65s ease-out forwards;
 }
 
 .td-flash--wrong {
-  background: radial-gradient(circle at center, rgba(196, 100, 100, 0.5) 0%, rgba(196, 100, 100, 0) 70%);
+  background: radial-gradient(circle at center, rgba(220, 60, 60, 0.8) 0%, rgba(220, 60, 60, 0) 75%);
   animation: td-radial-pop 0.65s ease-out forwards;
 }
 
@@ -1867,7 +1879,7 @@ p {
   padding: var(--space-xl) var(--space-2xl);
   box-shadow: var(--shadow-lifted);
   text-align: center;
-  max-width: 360px;
+  max-width: 35em;
   width: 90%;
   animation: td-popup-scale-in 0.35s var(--ease-spring);
 }
