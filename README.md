@@ -33,7 +33,7 @@ To bridge the physical and digital realms, a custom web application—built with
 
 | Picture | Description |
 | :--- | :--- |
-| <img width="400" height="auto" src="/assets/sticky-notes.png"> | **Sticky Notes**: A collection of colourful notes, typically used for agile methodology, kanban boards, or quick reminders during a sprint. |
-| <img width="400" height="auto" src="assets/real_objects.JPG"> | **Real Objects**: A photograph containing a variety of everyday items, often used as a dataset for training computer vision models. |
+| <img width="400" height="auto" src="/assets/sticky-notes.png"> | **Sticky Notes**: To identify what compoenents do we need for the board |
+| <img width="400" height="auto" src="assets/real_objects.JPG"> | **Real Objects**: To visualise how the board would look like -- next step would be 3d printing the things out |
 | <img width="400" height="auto" src="/assets/first_iteration.gif"> | **First iteration for software**: First idea dump for the game|
 | <img width="400" height="auto" src="/assets/second_iteration.gif"> | **Second iteration for software**: Refined the main page to reflect more like the actual board placement -- more visuals imported|
