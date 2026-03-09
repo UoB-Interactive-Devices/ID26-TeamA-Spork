@@ -49,10 +49,8 @@ export class CupFill {
 
   /** Animate a quick "splash" highlight */
   splash(): void {
-    this.fillEl.style.transition = 'none';
     this.fillEl.style.filter = 'brightness(1.4)';
     requestAnimationFrame(() => {
-      this.fillEl.style.transition = '';
       requestAnimationFrame(() => {
         this.fillEl.style.filter = '';
       });

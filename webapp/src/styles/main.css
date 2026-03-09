@@ -1061,7 +1061,7 @@ p {
   justify-content: center;
   gap: var(--space-xl);
   flex-direction: column;
-  margin-top: 5em;
+  margin-top: 2.5em;
 }
 
 .menu-logo-block {
@@ -1236,7 +1236,7 @@ p {
 /* ── Menu Navigation Buttons (centered on page) ── */
 .menu-nav {
   position: absolute;
-  top: 50%;
+  top: 42.5%;
   left: 50%;
   transform: translate(-50%, -50%);
   display: flex;
@@ -1581,8 +1581,23 @@ p {
   animation: stamp-shake 0.3s ease;
 }
 
+.play-arrow-wrap {
+  margin-top: 2em;
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  min-height: 80px;
+}
+
+.play-arrow {
+  width: clamp(60px, 10vw, 100px);
+  height: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+}
+
 .play-cup-wrap {
-  margin-top: 6em;
+  margin-top: 1em;
   padding-bottom: clamp(0.4rem, 2vh, 1.25rem);
   width: 100%;
   display: flex;
@@ -1590,18 +1605,32 @@ p {
 }
 
 #play .cup {
-  width: clamp(170px, 22vw, 220px);
-  height: clamp(235px, 34vh, 310px);
-  border-radius: 30px 30px 48px 48px;
-  border: 2px solid rgba(245, 230, 208, 0.28);
-  background: linear-gradient(180deg, rgba(255, 249, 236, 0.22) 0%, rgba(255, 249, 236, 0.08) 100%);
-  backdrop-filter: blur(2px);
+  width: clamp(180px, 22vw, 240px);
+  height: clamp(250px, 34vh, 330px);
+  border-radius: 0;
+  border: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+#play .cup::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image: url('/assets/glass_temp.webp');
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+  z-index: 2;
+  pointer-events: none;
 }
 
 #play .cup__fill {
   background: #5c3d2e;
-  border-radius: 0 0 44px 44px;
-  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  border-radius: 0;
+  transition: transform 1.4s cubic-bezier(0.22, 0.61, 0.36, 1), filter 0.3s ease;
+  z-index: 1;
+  clip-path: polygon(15% 0%, 84% 0%, 78% 100%, 22% 100%);
 }
 
 #play .cup__label {
@@ -1610,6 +1639,7 @@ p {
   font-family: var(--font-body);
   font-size: 0.85rem;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
+  z-index: 3;
 }
 
 .play-result-overlay {
@@ -2235,7 +2265,6 @@ p {
 
 .tutorial-tool-item:hover,
 .tutorial-tool-item:focus-visible {
-  transform: translateY(-20px);
   filter: drop-shadow(0 8px 12px rgba(0, 0, 0, 0.3));
   outline: none;
 }
@@ -2251,7 +2280,7 @@ p {
   bottom: -16px;
   left: -24px;
   right: -24px;
-  background: rgba(245, 230, 163, 0.55);
+  background: rgba(245, 230, 163, 0.3);
   border-radius: 12px;
   opacity: 0;
   transition: opacity 0.3s ease;
