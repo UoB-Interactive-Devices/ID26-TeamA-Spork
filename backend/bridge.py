@@ -26,6 +26,7 @@ from pathlib import Path
 # Fix Windows terminal encoding for special characters
 sys.stdout.reconfigure(encoding="utf-8", errors="replace")
 
+
 import numpy as np
 import serial
 import serial.tools.list_ports
