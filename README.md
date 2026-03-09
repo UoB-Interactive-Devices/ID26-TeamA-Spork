@@ -5,8 +5,8 @@
 ## Team Member
 | Name           | Student ID | Role |
 |----------------|------------|------|
-| Ameera Nur     | ct23065    |  Software (Backend), Hardware (Wiring), Project Manager    |  
-| Clarissa Ch'ng | fr22378    |  Software (Frontend), Designer (Software), Project Manager    |
+| Ameera Nur     | ct23065    |  Hardware, Project Manager    |  
+| Clarissa Ch'ng | fr22378    |  Software, 3D Printing, Project Manager    |
 | Dennis Han     | jf23616    |  Hardware Printing, Research, Writing    |
 | Gerard Chaba   | tl23383    |  Software (Linking Game to Frontend), Research, Writing    |
 | Zakiya Yousuf  | hg23195    |  Research Lead, Writing, User Understanding    |
