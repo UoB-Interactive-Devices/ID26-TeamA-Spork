@@ -11,6 +11,8 @@
 import { router } from './router.ts';
 import { MOTION_META, type MotionType } from '../types/motion.types.ts';
 import { GrinderTutorial } from '../components/GrinderTutorial.ts';
+import { DipTutorial } from '../components/DipTutorial.ts';
+import { PressTutorial } from '../components/PressTutorial.ts';
 import { serial } from '../modules/serial.ts';
 
 /** Tutorial order — matches the cards on the Tutorial page */
@@ -114,6 +116,8 @@ export function createTutorialDetail(): HTMLElement {
   let motionHandler: ((e: Event) => void) | null = null;
   let keyHandler: ((e: KeyboardEvent) => void) | null = null;
   let grinder: GrinderTutorial | null = null;
+  let dipTut: DipTutorial | null = null;
+  let pressTut: PressTutorial | null = null;
   let resolved = false; // whether the round already succeeded
   let successCount = 0;  // number of successful motions (need 2 to pass)
   const REQUIRED_SUCCESSES = 2;
@@ -137,6 +141,16 @@ export function createTutorialDetail(): HTMLElement {
       if (motion === 'grinding') {
         grinder = new GrinderTutorial(container);
         grinder.start();
+        (page.querySelector('#td-demo') as HTMLElement).style.display = 'none';
+        (page.querySelector('#td-feedback') as HTMLElement).style.display = 'none';
+      } else if (motion === 'up_down') {
+        dipTut = new DipTutorial(container);
+        dipTut.start();
+        (page.querySelector('#td-demo') as HTMLElement).style.display = 'none';
+        (page.querySelector('#td-feedback') as HTMLElement).style.display = 'none';
+      } else if (motion === 'press_down') {
+        pressTut = new PressTutorial(container);
+        pressTut.start();
         (page.querySelector('#td-demo') as HTMLElement).style.display = 'none';
         (page.querySelector('#td-feedback') as HTMLElement).style.display = 'none';
       } else {
@@ -204,8 +218,8 @@ export function createTutorialDetail(): HTMLElement {
         keyHandler = null;
       }
       if (grinder) { grinder.destroy(); grinder = null; }
-      if (pourTut) { pourTut.destroy(); pourTut = null; }
-      if (whiskTut) { whiskTut.destroy(); whiskTut = null; }
+      if (dipTut) { dipTut.destroy(); dipTut = null; }
+      if (pressTut) { pressTut.destroy(); pressTut = null; }
     }
   });
   observer.observe(page, { attributes: true, attributeFilter: ['class'] });
