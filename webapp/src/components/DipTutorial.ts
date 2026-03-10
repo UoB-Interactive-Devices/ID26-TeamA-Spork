@@ -60,33 +60,46 @@ export class DipTutorial {
     this.teabag.style.animation = 'none';
   }
 
-  /** Correct motion: enthusiastic dip */
-  triggerSuccess(): void {
+  /** Correct motion: fast spin, then reset to still for the next round */
+  private triggerSuccess(): void {
     this.el.classList.add('success');
-    this.teabag.style.animation = 'dipSuccess 0.6s ease-out forwards';
+    this.teabag.style.animation = '';
+    void this.teabag.offsetWidth; // force reflow so re-trigger works
+    this.teabag.style.animation = 'dipSuccess 0.8s ease-out forwards';
+
+    // After the spin finishes, go back to still so it can animate again
+    this.teabag.addEventListener('animationend', () => {
+      this.el.classList.remove('success');
+      this.teabag.style.animation = 'none';
+    }, { once: true });
   }
 
-  /** Wrong motion: shake */
-  triggerWrong(): void {
+  /** Wrong motion: shake + red flash */
+  private triggerWrong(): void {
     this.el.classList.add('wrong');
-    this.el.style.animation = 'shake 0.4s ease';
+
     setTimeout(() => {
-      this.el.style.animation = '';
       this.el.classList.remove('wrong');
-    }, 400);
+    }, 500);
   }
 
-  /** Reset to idle */
+  /** Reset to still state */
   reset(): void {
-    this.startIdle();
+    this.teabag.style.animation = 'none';
     this.el.classList.remove('success', 'wrong');
   }
 
-  destroy(): void {
+  /** Stop listening for motion events */
+  stop(): void {
     if (this.motionHandler) {
       document.removeEventListener('motion-detected', this.motionHandler);
       this.motionHandler = null;
     }
+  }
+
+  /** Remove from DOM and clean up */
+  destroy(): void {
+    this.stop();
     this.el.remove();
   }
 

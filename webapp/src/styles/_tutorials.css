@@ -209,6 +209,10 @@
   margin-top: var(--space-sm);
   opacity: 0.6;
 }
+.dip-tutorial.success .dip-teabag {
+  filter: drop-shadow(0 0 18px rgba(120, 230, 100, 0.85)) drop-shadow(0 0 40px rgba(120, 230, 100, 0.45));
+  transition: filter 0.3s ease;
+}
 
 .dip-tutorial.wrong {
   animation: shake 0.4s ease;
@@ -304,6 +308,11 @@
   opacity: 0.6;
 }
 
+.press-tutorial.success .press-plunger {
+  filter: drop-shadow(0 0 18px rgba(120, 230, 100, 0.85)) drop-shadow(0 0 40px rgba(120, 230, 100, 0.45));
+  transition: filter 0.3s ease;
+}
+
 .press-tutorial.wrong {
   animation: shake 0.4s ease;
 }
@@ -352,6 +361,41 @@
   background: url('/assets/motion_arrows/1.png') center / contain no-repeat;
   z-index: 10;
   pointer-events: none;
+}
+
+/* ── Tutorial Detail: sensor-reactive cup ───────────────── */
+.td-cup-container {
+  position: absolute;
+  bottom: 2rem;
+  right: 2rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+/* ── Sensor XY Map ─────────────────────────────────────── */
+.sensor-xy-map {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sensor-xy-map__canvas {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* ── Sensor Z Strip ───────────────────────────────────── */
+.sensor-z-strip {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sensor-z-strip__canvas {
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* ── Tutorial Detail: radial flash overlay ─────────────── */

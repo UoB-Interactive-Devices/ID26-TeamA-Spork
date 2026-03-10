@@ -14,6 +14,9 @@ import { GrinderTutorial } from '../components/GrinderTutorial.ts';
 import { DipTutorial } from '../components/DipTutorial.ts';
 import { PressTutorial } from '../components/PressTutorial.ts';
 import { serial } from '../modules/serial.ts';
+import { CupFill } from '../components/CupFill.ts';
+import { SensorXYMap } from '../components/SensorXYMap.ts';
+import { SensorZStrip } from '../components/SensorZStrip.ts';
 
 /** Tutorial order — matches the cards on the Tutorial page */
 const TUTORIAL_ORDER: MotionType[] = ['grinding', 'up_down', 'press_down'];
@@ -80,6 +83,9 @@ export function createTutorialDetail(): HTMLElement {
       </div>
     </div>
 
+    <!-- Sensor-reactive cup -->
+    <div id="td-cup-container" class="td-cup-container"></div>
+
     <!-- Radial flash overlay (success / wrong) -->
     <div id="td-flash" class="td-flash"></div>
 
@@ -118,6 +124,9 @@ export function createTutorialDetail(): HTMLElement {
   let grinder: GrinderTutorial | null = null;
   let dipTut: DipTutorial | null = null;
   let pressTut: PressTutorial | null = null;
+  let cup: CupFill | null = null;
+  let xyMap: SensorXYMap | null = null;
+  let zStrip: SensorZStrip | null = null;
   let resolved = false; // whether the round already succeeded
   let successCount = 0;  // number of successful motions (need 2 to pass)
   const REQUIRED_SUCCESSES = 2;
@@ -135,6 +144,20 @@ export function createTutorialDetail(): HTMLElement {
 
       // Clean previous tutorial component HTML
       (page.querySelector('#td-grinder-container') as HTMLElement).innerHTML = '';
+
+      // Set up sensor feedback per motion type
+      const cupContainer = page.querySelector('#td-cup-container') as HTMLElement;
+      cupContainer.innerHTML = '';
+      if (motion === 'grinding') {
+        xyMap = new SensorXYMap(cupContainer);
+        xyMap.startListening();
+      } else if (motion === 'up_down' || motion === 'press_down') {
+        zStrip = new SensorZStrip(cupContainer);
+        zStrip.startListening();
+      } else {
+        cup = new CupFill(cupContainer);
+        cup.startListening();
+      }
 
       const container = page.querySelector('#td-grinder-container') as HTMLElement;
 
@@ -160,14 +183,19 @@ export function createTutorialDetail(): HTMLElement {
 
       // Arduino path
       if (serial.isConnected) {
-        motionHandler = createMotionListener(page, motion, () => {
+        motionHandler = createMotionListener(page, motion, (confidence: number) => {
           if (!resolved) {
+            cup?.confirmFill(confidence);
+            xyMap?.confirm();
+            zStrip?.confirm();
             successCount++;
             updateCounter(page, successCount, REQUIRED_SUCCESSES);
             if (successCount >= REQUIRED_SUCCESSES) {
               resolved = true;
               onSuccess(page);
             } else {
+              // Reset sensor viz back to sensing for the next attempt
+              setTimeout(() => { cup?.reset(); xyMap?.reset(); zStrip?.reset(); }, 1200);
               flashRadial(page, 'success');
             }
           }
@@ -188,12 +216,16 @@ export function createTutorialDetail(): HTMLElement {
           }));
           // Only count here if no Arduino motionHandler (it would double-count)
           if (!motionHandler && !resolved) {
+            cup?.confirmFill(1);
+            xyMap?.confirm();
+            zStrip?.confirm();
             successCount++;
             updateCounter(page, successCount, REQUIRED_SUCCESSES);
             if (successCount >= REQUIRED_SUCCESSES) {
               resolved = true;
               onSuccess(page);
             } else {
+              setTimeout(() => { cup?.reset(); xyMap?.reset(); zStrip?.reset(); }, 1200);
               flashRadial(page, 'success');
             }
           }
@@ -220,6 +252,9 @@ export function createTutorialDetail(): HTMLElement {
       if (grinder) { grinder.destroy(); grinder = null; }
       if (dipTut) { dipTut.destroy(); dipTut = null; }
       if (pressTut) { pressTut.destroy(); pressTut = null; }
+      if (cup) { cup.destroy(); cup = null; }
+      if (xyMap) { xyMap.destroy(); xyMap = null; }
+      if (zStrip) { zStrip.destroy(); zStrip = null; }
     }
   });
   observer.observe(page, { attributes: true, attributeFilter: ['class'] });
@@ -245,7 +280,7 @@ function setupDetail(page: HTMLElement, motion: MotionType): void {
 function createMotionListener(
   page: HTMLElement,
   expectedMotion: MotionType,
-  onCorrect: () => void
+  onCorrect: (confidence: number) => void
 ) {
   return (e: Event) => {
     const { motion, confidence } = (e as CustomEvent).detail as {
@@ -263,7 +298,7 @@ function createMotionListener(
       fillEl.style.width = `${pct}%`;
       fillEl.style.background = 'var(--accent-sage)';
       demoText.textContent = 'Great job!';
-      onCorrect();
+      onCorrect(confidence);
     } else {
       const meta = MOTION_META[motion];
       statusEl.textContent = `Detected "${meta.label}" — try the correct motion`;

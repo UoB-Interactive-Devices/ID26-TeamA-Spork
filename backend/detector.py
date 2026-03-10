@@ -51,6 +51,11 @@ UP_DOWN_MAX_PEAKS = 3
 CV_THRESHOLD = 0.5
 UP_DOWN_AXIS_RATIO = 0.7
 
+# Circular / grinding (X-Y rotation) thresholds
+CIRCULAR_MIN_CIRCLES = 2.0         # at least 2 full rotations in the X-Y plane
+CIRCULAR_MIN_CONSISTENCY = 0.65    # fraction of angle deltas in same direction
+CIRCULAR_MIN_XY_MAG = 20.0        # mean X-Y magnitude must be meaningful
+
 
 # -- Low-pass filter ---------------------------------------
 def low_pass_filter(data: np.ndarray, cutoff_hz: float = LOW_PASS_CUTOFF_HZ,
@@ -109,6 +114,9 @@ def extract_features(x: np.ndarray, y: np.ndarray, z: np.ndarray) -> dict:
     }
     dominant_axis = max(axis_stds, key=axis_stds.get)
 
+    # X-Y rotation analysis: atan2 angle sweep + consistency
+    xy_circles, xy_consistency, xy_mag_mean = compute_xy_rotation(x, y)
+
     return {
         "zc_x": zc_x,
         "zc_y": zc_y,
@@ -124,10 +132,39 @@ def extract_features(x: np.ndarray, y: np.ndarray, z: np.ndarray) -> dict:
         "y_std": round(axis_stds['y'], 2),
         "z_std": round(axis_stds['z'], 2),
         "dominant_axis": dominant_axis,
+        # X-Y rotation features
+        "xy_circles": round(xy_circles, 2),
+        "xy_consistency": round(xy_consistency, 2),
+        "xy_mag_mean": round(xy_mag_mean, 2),
     }
 
 
 # -- Classification helpers --------------------------------
+
+def compute_xy_rotation(x: np.ndarray, y: np.ndarray) -> tuple[float, float, float]:
+    """Analyse X-Y plane rotation.
+
+    Returns:
+        (n_circles, sweep_consistency, xy_mag_mean)
+        - n_circles: total signed rotations (positive = CCW)
+        - sweep_consistency: fraction of angle deltas matching the dominant direction (0-1)
+        - xy_mag_mean: mean magnitude in the X-Y plane
+    """
+    if len(x) < 4:
+        return (0.0, 0.0, 0.0)
+    angles = np.arctan2(y, x)
+    unwrapped = np.unwrap(angles)
+    total_rot = unwrapped[-1] - unwrapped[0]
+    n_circles = total_rot / (2.0 * np.pi)
+    diffs = np.diff(unwrapped)
+    if len(diffs) == 0 or total_rot == 0:
+        return (n_circles, 0.0, float(np.sqrt(x ** 2 + y ** 2).mean()))
+    same_dir = float(np.sum(np.sign(diffs) == np.sign(total_rot)))
+    consistency = same_dir / len(diffs)
+    xy_mag_mean = float(np.sqrt(x ** 2 + y ** 2).mean())
+    return (n_circles, consistency, xy_mag_mean)
+
+
 def starts_from_rest(magnitude: np.ndarray, noise_floor: float) -> bool:
     prefix = magnitude[:int(len(magnitude) * CIRCULAR_REST_FRACTION)]
     if len(prefix) == 0:
@@ -184,10 +221,22 @@ def classify(features: dict, magnitude: np.ndarray | None = None,
     # Circular fallback — should only occur on horizontal axes
     if features['dominant_axis'] == 'z':
         return (None, 0.0)
+    # Positive circular check via X-Y rotation analysis
+    if (abs(features['xy_circles']) >= CIRCULAR_MIN_CIRCLES
+            and features['xy_consistency'] >= CIRCULAR_MIN_CONSISTENCY
+            and features['xy_mag_mean'] >= CIRCULAR_MIN_XY_MAG):
+        # Confidence from consistency and rotation count
+        circ_conf = min(1.0, features['xy_consistency'] / 0.85)
+        rot_conf = min(1.0, abs(features['xy_circles']) / 4.0)
+        return ('grinding', round((circ_conf + rot_conf) / 2.0, 2))
+    # Weak fallback — active on X-Y but didn't meet rotation criteria
     active_fraction = float(np.sum(magnitude > noise_floor)) / len(magnitude)
     active_conf = min(1.0, active_fraction / 0.7)
     mag_conf = min(1.0, features['mag_mean'] / 100.0)
-    return ('grinding', round((active_conf + mag_conf) / 2.0, 2))  # frontend expects 'grinding' for circular
+    combined = round((active_conf + mag_conf) / 2.0, 2)
+    if combined >= 0.4:
+        return ('grinding', combined)
+    return (None, 0.0)
 
 
 # -- Detector state machine --------------------------------
@@ -398,8 +447,9 @@ def run_test():
     print(f"\n  Found {len(csv_files)} CSV files in {data_dir}\n")
     noise_floor = 15.0
     print(f"  {'File':<30} {'Detected':<12} {'Conf':>6}  "
-          f"{'rest':>5} {'dur':>5} {'rhythm':>7} {'mag_m':>6} {'mag_x':>7} {'dom':>4} {'x_std':>6} {'y_std':>6} {'z_std':>6}")
-    print("  " + "-" * 107)
+          f"{'rest':>5} {'dur':>5} {'rhythm':>7} {'mag_m':>6} {'mag_x':>7} {'dom':>4}"
+          f" {'circles':>8} {'consist':>8} {'xy_mag':>7}")
+    print("  " + "-" * 120)
 
     for path in csv_files:
         filename = os.path.basename(path)
@@ -451,7 +501,8 @@ def run_test():
         rhythm_str = "Y" if has_rhythm else "N"
         print(f"  {filename:<30} {det_str:<12} {conf:>5.0%}  "
               f"{rest_str:>5} {dur:>5.1f} {rhythm_str:>7} {feat['mag_mean']:>6.1f} {feat['mag_max']:>7.1f}"
-              f" {feat['dominant_axis']:>4} {feat['x_std']:>6.1f} {feat['y_std']:>6.1f} {feat['z_std']:>6.1f}")
+              f" {feat['dominant_axis']:>4}"
+              f" {feat['xy_circles']:>+8.1f} {feat['xy_consistency']:>8.2f} {feat['xy_mag_mean']:>7.1f}")
 
     print()
 

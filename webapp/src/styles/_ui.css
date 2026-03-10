@@ -198,7 +198,32 @@
   border-radius: 0 0 22px 22px;
   transform-origin: bottom;
   transform: scaleY(0);
-  transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  transition:
+    transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    background 0.5s ease;
+}
+
+/* Sensing state — light tan fill reacting to live sensor magnitude */
+.cup--sensing .cup__fill {
+  background: linear-gradient(
+    0deg,
+    #e8d5b7 0%,
+    #f0e0c8 50%,
+    #f5ead6 100%
+  );
+}
+
+/* Confirmed state — dark coffee brown on correct motion */
+.cup--confirmed .cup__fill {
+  background: linear-gradient(
+    0deg,
+    #3b2417 0%,
+    #5c3d2e 50%,
+    #7a5240 100%
+  );
+  transition:
+    transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+    background 0.5s ease;
 }
 
 .cup__label {
