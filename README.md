@@ -55,14 +55,32 @@ Rituals, Habit formation, Proxy objects, Breaking, mindfulness with proxy object
 | <img width="400" height="auto" src="assets/tutorial1_flow.gif"> | **Tutorial page screens**: Shows how the tutorial flow evolved — e.g. the grinder/pour/whisk components, motion feedback, success counter|
 | <img width="400" height="auto" src="assets/gameplay_flow.gif"> | **Gameplay screens**: Shows the level progression, motion detection during play, choreograph/replay mode|
 
-### To Do 
-| Date | To-do |
-| :--- | :--- |
-| 12/03 | [ ] Solder <br> [ ] Magnet placements <br> [ ] NFC Capsule placement <br> [ ] Recording motions <br> [ ] Tutorial screens adjustment (Visuals) <br> [ ] Gameplay logic<br> [ ] z-axis feedback to real time scrolling graph <br> [ ] Button function (fallback keypress) <br> |
+
+### To Do
+<details>
+<summary><strong>Week 20 - 12/03</strong></summary>
+
+- [ ] Solder
+- [ ] Magnet placements
+- [ ] NFC Capsule placement
+- [ ] Recording motions
+- [ ] Tutorial screens adjustment (Visuals)
+- [ ] Gameplay logic
+- [ ] z-axis feedback to real time scrolling graph
+- [ ] Button function (fallback keypress)
+
+</details>
 
 ### Notes
-Week 20 
+Week 20
+
+<details>
+<summary><strong>Week 20</strong></summary>
+
 - tested with joystick but it's too heavy and laggy for our game 
 - tries different types of 3d matcha whisk but it fails -- hence using the normal balloon whisk 
 - motion detection work successfully 
 - storyboarded our gameplay 
+
+</details>
+
