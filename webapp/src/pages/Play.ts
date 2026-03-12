@@ -7,7 +7,7 @@
  *  - Step progress indicator
  */
 import { router } from './router.ts';
-import { LEVELS, MOTION_META, ALL_MOTIONS, type MotionType, type GameLevel } from '../types/motion.types.ts';
+import { LEVELS, MOTION_META, type MotionType, type GameLevel } from '../types/motion.types.ts';
 
 import { CupFill } from '../components/CupFill.ts';
 import { MotionPrompt } from '../components/MotionPrompt.ts';
@@ -22,11 +22,13 @@ export function createPlayPage(): HTMLElement {
       <span class="btn-icon btn-back-icon"></span>
       Back
     </button>
+    <div class="play-timer" id="play-timer"></div>
     <div class="play-round">
       <h2 id="play-title"></h2>
       <div id="play-progress" class="play-progress-dots"></div>
       <div id="play-stamps" class="play-stamps"></div>
       <div id="play-prompt-area" class="sr-only"></div>
+      <div id="play-scan-prompt" class="play-scan-prompt hidden"></div>
       <div id="play-arrow-area" class="play-arrow-wrap"></div>
       <div id="play-cup-area" class="play-cup-wrap"></div>
       <div id="play-result" class="hidden stack play-result-overlay" style="text-align: center;"></div>
@@ -59,8 +61,10 @@ function startLevel(page: HTMLElement): void {
   const progressEl = page.querySelector('#play-progress') as HTMLElement;
   const stampsEl = page.querySelector('#play-stamps') as HTMLElement;
   const promptArea = page.querySelector('#play-prompt-area') as HTMLElement;
+  const scanPromptEl = page.querySelector('#play-scan-prompt') as HTMLElement;
   const arrowArea = page.querySelector('#play-arrow-area') as HTMLElement;
   const cupArea = page.querySelector('#play-cup-area') as HTMLElement;
+  const timerEl = page.querySelector('#play-timer') as HTMLElement;
   const resultArea = page.querySelector('#play-result') as HTMLElement;
 
   // Reset
@@ -68,6 +72,8 @@ function startLevel(page: HTMLElement): void {
   progressEl.innerHTML = '';
   stampsEl.innerHTML = '';
   promptArea.innerHTML = '';
+  scanPromptEl.innerHTML = '';
+  scanPromptEl.classList.add('hidden');
   arrowArea.innerHTML = '';
   cupArea.innerHTML = '';
   resultArea.innerHTML = '';
@@ -83,12 +89,12 @@ function startLevel(page: HTMLElement): void {
   });
 
   const stamps: HTMLElement[] = Array.from({ length: VISUAL_STAMP_COUNT }, (_, i) => {
-    const randomMotion = ALL_MOTIONS[Math.floor(Math.random() * ALL_MOTIONS.length)];
-    const assetSrc = MOTION_META[randomMotion].asset;
-    const assetAlt = MOTION_META[randomMotion].label;
+    const stepMotion = level.steps[i].motion;
+    const assetSrc = MOTION_META[stepMotion].asset;
+    const assetAlt = MOTION_META[stepMotion].label;
     const stamp = document.createElement('div');
     stamp.className = `play-stamp ${stampVisualClasses[i]}`;
-    stamp.title = `Stamp ${i + 1}`;
+    stamp.title = MOTION_META[stepMotion].prop;
     stamp.innerHTML = `
       <div class="play-stamp__inner">
         <img class="play-stamp__asset" src="${assetSrc}" alt="${assetAlt}" />
@@ -105,7 +111,10 @@ function startLevel(page: HTMLElement): void {
   let completedCorrect = 0;
   let score = 0;
   let motionHandler: ((e: Event) => void) | null = null;
+  let scanHandler: ((e: Event) => void) | null = null;
   let keyHandler: ((e: KeyboardEvent) => void) | null = null;
+  let timerInterval: ReturnType<typeof setInterval> | null = null;
+  let timerRaf: number | null = null;
 
   function updateVisualProgress(): void {
     dots.forEach((dot, i) => {
@@ -135,6 +144,22 @@ function startLevel(page: HTMLElement): void {
 
   updateVisualProgress();
 
+  /** Clean up all active listeners and timers */
+  function cleanupListeners(): void {
+    if (motionHandler) { document.removeEventListener('motion-detected', motionHandler); motionHandler = null; }
+    if (scanHandler) { document.removeEventListener('tool-scanned', scanHandler); scanHandler = null; }
+    if (keyHandler) { document.removeEventListener('keydown', keyHandler); keyHandler = null; }
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    if (timerRaf) { cancelAnimationFrame(timerRaf); timerRaf = null; }
+    timerEl.textContent = '';
+    timerEl.style.removeProperty('--sweep');
+    timerEl.removeAttribute('data-state');
+  }
+
+  /**
+   * Phase 1 — Scan: show the component and ask the user to scan it.
+   * Waits for an NFC `tool-scanned` event or a keypress fallback.
+   */
   function advance(): void {
     if (currentStep >= level.steps.length) {
       finish();
@@ -142,29 +167,110 @@ function startLevel(page: HTMLElement): void {
     }
 
     const step = level.steps[currentStep];
+    const meta = MOTION_META[step.motion];
 
+    // Show component prompt (hidden arrow for now)
     prompt.show(step.motion);
+    arrowArea.innerHTML = '';
 
-    // Show a random motion arrow for this step
-    const randomArrowMotion = ALL_MOTIONS[Math.floor(Math.random() * ALL_MOTIONS.length)];
-    const arrowSrc = MOTION_META[randomArrowMotion].arrow;
-    arrowArea.innerHTML = `<img class="play-arrow" src="${arrowSrc}" alt="${MOTION_META[randomArrowMotion].label} motion" />`;
+    // Show scan instruction
+    scanPromptEl.classList.remove('hidden');
+    scanPromptEl.textContent = `Show your ${meta.prop} to Mr Spork`;
 
+    // Listen for NFC scan
+    scanHandler = ((e: Event) => {
+      const detail = (e as CustomEvent).detail as { tool: string };
+      // Accept any scan for now; can validate tool type later
+      if (detail.tool) {
+        onScanComplete();
+      }
+    });
+    document.addEventListener('tool-scanned', scanHandler);
+
+    // Keyboard fallback for scan phase (Space / Enter = simulate scan)
+    keyHandler = (e: KeyboardEvent) => {
+      if (!page.classList.contains('active')) return;
+      if (!resultArea.classList.contains('hidden')) return;
+      if (e.key === ' ' || e.key === 'Enter') {
+        e.preventDefault();
+        onScanComplete();
+      }
+    };
+    document.addEventListener('keydown', keyHandler);
+  }
+
+  /**
+   * Phase 2 — Motion: stamp is colourful, show the arrow, start timer.
+   */
+  function onScanComplete(): void {
+    // Clean up scan listeners
+    if (scanHandler) { document.removeEventListener('tool-scanned', scanHandler); scanHandler = null; }
+    if (keyHandler) { document.removeEventListener('keydown', keyHandler); keyHandler = null; }
+
+    const step = level.steps[currentStep];
+    const meta = MOTION_META[step.motion];
+
+    // Update scan prompt to motion instruction
+    scanPromptEl.classList.remove('hidden');
+    scanPromptEl.textContent = 'Do the following motion!';
+
+    // Activate stamp (colourful) on scan
+    if (currentStep < VISUAL_STAMP_COUNT) {
+      const stamp = stamps[currentStep];
+      stamp.classList.add('is-scanned');
+      stamp.classList.remove('pop');
+      void stamp.offsetWidth;
+      stamp.classList.add('pop');
+      setTimeout(() => stamp.classList.remove('pop'), 320);
+    }
+
+    // Now show the motion arrow
+    const arrowSrc = meta.arrow;
+    arrowArea.innerHTML = `<img class="play-arrow" src="${arrowSrc}" alt="${meta.label} motion" />`;
+
+    // Start countdown for the motion
     prompt.startTimer(step.duration, () => {
       // Timer expired — fail this step
       prompt.markFail();
       flashWrongStamp();
-      if (motionHandler) {
-        document.removeEventListener('motion-detected', motionHandler);
-        motionHandler = null;
-      }
-      if (keyHandler) {
-        document.removeEventListener('keydown', keyHandler);
-        keyHandler = null;
-      }
+      cleanupListeners();
       currentStep++;
       setTimeout(advance, 800);
     });
+
+    // Start bottom-left timer — sweeping ring (rAF) + inner colour change (interval)
+    if (timerInterval) clearInterval(timerInterval);
+    if (timerRaf) { cancelAnimationFrame(timerRaf); timerRaf = null; }
+    let remaining = step.duration;
+    const totalDuration = step.duration;
+    const startMs = performance.now();
+    const totalMs = totalDuration * 1000;
+    timerEl.textContent = String(remaining);
+    timerEl.dataset.state = 'high';
+
+    // Smooth ring sweep via rAF
+    function animateTimer(): void {
+      const elapsed = performance.now() - startMs;
+      const fraction = Math.max(0, 1 - elapsed / totalMs);
+      timerEl.style.setProperty('--sweep', `${(fraction * 360).toFixed(1)}deg`);
+      if (fraction > 0) timerRaf = requestAnimationFrame(animateTimer);
+    }
+    timerRaf = requestAnimationFrame(animateTimer);
+
+    // Countdown text + inner colour state each second
+    timerInterval = setInterval(() => {
+      remaining--;
+      timerEl.textContent = remaining > 0 ? String(remaining) : '';
+
+      const pct = remaining / totalDuration;
+      if (pct > 0.4) timerEl.dataset.state = 'high';
+      else if (pct > 0.15) timerEl.dataset.state = 'medium';
+      else timerEl.dataset.state = 'low';
+
+      if (remaining <= 0) {
+        if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+      }
+    }, 1000);
 
     // Listen for matching motion
     motionHandler = ((e: Event) => {
@@ -174,24 +280,12 @@ function startLevel(page: HTMLElement): void {
         prompt.stopTimer();
         prompt.markSuccess();
         score += detail.confidence;
-        if (completedCorrect < VISUAL_STAMP_COUNT) {
-          const activatedStamp = stamps[completedCorrect];
-          activatedStamp.classList.remove('pop');
-          void activatedStamp.offsetWidth;
-          activatedStamp.classList.add('pop');
-          setTimeout(() => activatedStamp.classList.remove('pop'), 320);
-        }
 
         completedCorrect++;
         updateVisualProgress();
         cup.splash();
 
-        document.removeEventListener('motion-detected', motionHandler!);
-        motionHandler = null;
-        if (keyHandler) {
-          document.removeEventListener('keydown', keyHandler);
-          keyHandler = null;
-        }
+        cleanupListeners();
         currentStep++;
         setTimeout(advance, 800);
       } else {
@@ -200,19 +294,17 @@ function startLevel(page: HTMLElement): void {
     });
     document.addEventListener('motion-detected', motionHandler);
 
-    // Keyboard fallback (when Arduino is not connected)
+    // Keyboard fallback for motion phase (Space / Enter = simulate correct motion)
     keyHandler = (e: KeyboardEvent) => {
       if (!page.classList.contains('active')) return;
       if (!resultArea.classList.contains('hidden')) return;
       if (e.key === ' ' || e.key === 'Enter') {
         e.preventDefault();
-        // Simulate correct motion
         const synth = new CustomEvent('motion-detected', {
           detail: { motion: step.motion, confidence: 1 },
         });
         document.dispatchEvent(synth);
       } else if (e.key.length === 1) {
-        // Any other printable key = wrong
         flashWrongStamp();
       }
     };
@@ -221,8 +313,7 @@ function startLevel(page: HTMLElement): void {
 
   function finish(): void {
     prompt.destroy();
-    if (motionHandler) document.removeEventListener('motion-detected', motionHandler);
-    if (keyHandler) { document.removeEventListener('keydown', keyHandler); keyHandler = null; }
+    cleanupListeners();
 
     const pct = Math.round((score / level.steps.length) * 100);
     const passed = pct >= level.passingScore;
