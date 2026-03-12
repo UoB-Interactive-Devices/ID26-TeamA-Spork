@@ -28,7 +28,8 @@
   flex-direction: column;
   align-items: center;
   padding-top: clamp(5.5rem, 10vh, 7rem);
-  margin:0 auto;
+  margin: 0 auto;
+  gap: var(--space-sm);
 }
 
 #play-title {
@@ -61,6 +62,7 @@
 
 .play-stamps {
   margin-top: var(--space-md);
+  margin-bottom: var(--space-md);
   min-height: 180px;
   display: flex;
   align-items: center;
@@ -134,32 +136,69 @@
   animation: stamp-pop 0.3s ease;
 }
 
+.play-stamp.is-scanned {
+  border-color: rgba(255, 248, 233, 0.98);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.24), 0 0 0 1px rgba(255, 248, 233, 0.24);
+}
+
+.play-stamp.is-scanned .play-stamp__inner {
+  filter: grayscale(0%) brightness(1);
+}
+
 .play-stamp.is-wrong {
   border-color: #d16060;
   animation: stamp-shake 0.3s ease;
 }
 
+/* Scan prompt text above the arrow area */
+.play-scan-prompt {
+  margin-top: var(--space-md);
+  text-align: center;
+  font-family: var(--font-body);
+  font-size: clamp(1rem, 2.5vw, 1.25rem);
+  color: #fff8eb;
+  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  animation: scan-pulse 1.6s ease-in-out infinite;
+}
+
+.play-scan-prompt.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+@keyframes scan-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.55; }
+}
+
+/* Arrow and Cup container — positioned together to prevent jumping */
 .play-arrow-wrap {
-  margin-top: 2em;
+  margin-top: -1em;
   width: 100%;
   display: flex;
-  justify-content: center;
-  min-height: 80px;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5em;
+  flex-shrink: 0;
 }
 
 .play-arrow {
   width: clamp(60px, 10vw, 100px);
-  height: auto;
+  height: clamp(70px, 12vw, 120px);
   object-fit: contain;
   filter: drop-shadow(0 2px 6px rgba(0,0,0,0.25));
+  display: flex;
+  align-items: center;
 }
 
 .play-cup-wrap {
-  margin-top: 1em;
   padding-bottom: clamp(0.4rem, 2vh, 1.25rem);
   width: 100%;
+  height: clamp(280px, 40vh, 400px);
   display: flex;
   justify-content: center;
+  flex-shrink: 0;
+  margin-top: auto;
 }
 
 #play .cup {
@@ -198,6 +237,73 @@
   font-size: 0.85rem;
   text-shadow: 0 2px 6px rgba(0, 0, 0, 0.3);
   z-index: 3;
+}
+
+/* Bottom-left circular timer — sweeping ring (conic-gradient) + coloured inner disc */
+.play-timer {
+  position: fixed;
+  bottom: var(--space-lg);
+  left: var(--space-lg);
+  z-index: 2;
+  width: clamp(80px, 12vw, 140px);
+  aspect-ratio: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-body);
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  font-weight: 700;
+  color: #fff8eb;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  border-radius: 50%;
+  /* Ring arc — arc colour sweeps from top clockwise */
+  background: conic-gradient(
+    from 0deg,
+    #7a6248 0deg,
+    #7a6248 var(--sweep, 360deg),
+    rgba(255, 255, 255, 0.1) var(--sweep, 360deg)
+  );
+}
+
+/* Inner filled disc — sits below text, transitions colour smoothly */
+.play-timer::after {
+  content: '';
+  position: absolute;
+  inset: 8%;
+  border-radius: 50%;
+  background-color: var(--text-secondary);
+  transition: background-color 0.6s ease;
+  z-index: -1;
+}
+
+/* Ring arc colour changes with state */
+.play-timer[data-state="medium"] {
+  background: conic-gradient(
+    from 0deg,
+    #e8c84a 0deg,
+    #e8c84a var(--sweep, 360deg),
+    rgba(255, 255, 255, 0.1) var(--sweep, 360deg)
+  );
+}
+
+.play-timer[data-state="low"] {
+  background: conic-gradient(
+    from 0deg,
+    #d16060 0deg,
+    #d16060 var(--sweep, 360deg),
+    rgba(255, 255, 255, 0.1) var(--sweep, 360deg)
+  );
+  animation: timer-alert 0.5s ease-in-out infinite;
+}
+
+/* Inner disc colour states — smooth transitions via ::after */
+.play-timer[data-state="high"]::after   { background-color: var(--success); }
+.play-timer[data-state="medium"]::after { background-color: var(--warning); }
+.play-timer[data-state="low"]::after    { background-color: var(--error); }
+
+@keyframes timer-alert {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.07); }
 }
 
 .play-result-overlay {
