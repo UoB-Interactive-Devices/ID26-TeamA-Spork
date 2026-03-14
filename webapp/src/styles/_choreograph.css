@@ -505,20 +505,6 @@
   margin-top: var(--space-md);
 }
 
-.ch-replay-prompt {
-  width: 100%;
-}
-
-.ch-replay-cup {
-  display: flex;
-  justify-content: center;
-  width: 100%;
-}
-
-.ch-replay-result-stack {
-  margin-top: var(--space-lg);
-}
-
 @keyframes ch-stage-arrow-pulse {
   0%, 100% {
     transform: translateX(0);
