@@ -455,7 +455,7 @@ export function createChoreograph(): HTMLElement {
 
     renderSavedList();
     showBookView();
-    liveFeed.textContent = 'Saved. Add another any time.';
+    liveFeed.textContent = 'Recipe saved. Return any time to add another one.';
   });
 
   function renderSavedList(): void {
