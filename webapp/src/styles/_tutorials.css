@@ -364,8 +364,8 @@
 
 .press-scene {
   position: relative;
-  width: clamp(207px, 47vw, 360px);
-  height: clamp(288px, 65vw, 504px);
+  width: clamp(207px, 47vw, 280px);
+  height: clamp(288px, 65vw, 360px);
   display: flex;
   align-items: center;
   justify-content: center;
