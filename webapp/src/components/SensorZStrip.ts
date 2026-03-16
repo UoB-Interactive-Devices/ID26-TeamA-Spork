@@ -25,7 +25,7 @@ export class SensorZStrip {
   private confirmed = false;
   private sensorHandler: ((e: Event) => void) | null = null;
 
-  constructor(parent: HTMLElement, overlayImgSrc?: string) {
+  constructor(parent: HTMLElement, overlayImgSrc?: string, overlayOpacity = 1) {
     this.el = document.createElement('div');
     this.el.className = 'sensor-z-strip';
     this.el.style.position = 'relative';
@@ -52,6 +52,7 @@ export class SensorZStrip {
       this.overlayImg.style.left = '0';
       this.overlayImg.style.width = CANVAS_W + 'px';
       this.overlayImg.style.height = CANVAS_H + 'px';
+      this.overlayImg.style.opacity = String(overlayOpacity);
       this.overlayImg.style.pointerEvents = 'none';
       this.overlayImg.style.zIndex = '2';
       this.el.appendChild(this.overlayImg);

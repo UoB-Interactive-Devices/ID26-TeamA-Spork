@@ -163,7 +163,7 @@
   left: 2.5rem;
   width: 140px;
   height: 90px;
-  background: url('/ID26-TeamA-Spork/webapp/assets/motion_arrows/circle.png') center / contain no-repeat;
+  background: url('/ID26-TeamA-Spork/webapp/assets/motion_arrows/circle.PNG') center / contain no-repeat;
   z-index: 10;
   pointer-events: none;
 }
@@ -304,7 +304,7 @@
   left: 2.5rem;
   width: 140px;
   height: 90px;
-  background: url('/ID26-TeamA-Spork/webapp/assets/motion_arrows/up_down.png') center / contain no-repeat;
+  background: url('/ID26-TeamA-Spork/webapp/assets/motion_arrows/up_down.PNG') center / contain no-repeat;
   z-index: 10;
   pointer-events: none;
 }
@@ -454,7 +454,8 @@
   left: 2.5rem;
   width: 140px;
   height: 90px;
-  background: url('/ID26-TeamA-Spork/webapp/assets/motion_arrows/circle.png') center / contain no-repeat;
+  background: url('/ID26-TeamA-Spork/webapp/assets/motion_arrows/press_down.PNG') center / contain no-repeat;
+  opacity: 0.35;
   z-index: 10;
   pointer-events: none;
 }
@@ -482,7 +483,8 @@
 
 .sensor-xy-map__canvas {
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.75);
+  border: 1px solid rgba(120, 100, 80, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
@@ -495,7 +497,8 @@
 
 .sensor-z-strip__canvas {
   border-radius: 12px;
-  background: rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(120, 100, 80, 0.2);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   width: 160px !important;
   height: 160px !important;
