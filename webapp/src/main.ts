@@ -14,17 +14,10 @@ import { createTutorialDetail } from './pages/TutorialDetail.ts';
 import { createChoreograph } from './pages/Choreograph.ts';
 import { motionDetector } from './components/MotionDetector.ts';
 import { bgm } from './modules/bgm.ts';
-import { joystick } from './modules/joystick.ts';
+
 
 function init(): void {
-    function setJoystickFocus(el: HTMLElement): void {
-      document.querySelectorAll('.joystick-focus').forEach(e => {
-        e.classList.remove('joystick-focus');
-        (e as HTMLElement).style.transform = '';
-      });
-      el.focus();
-      el.classList.add('joystick-focus');
-    }
+
   // Apply saved theme (default: dark)
   const savedTheme = localStorage.getItem('spork-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
@@ -161,64 +154,72 @@ function init(): void {
   document.addEventListener('click', startBgm);
   document.addEventListener('keydown', startBgm);
 
+
   // 3. Navigate to main menu
   router.go('main-menu');
+
+  // 5. Keyboard navigation for main menu (A/S keys)
+  function setupGlobalKeyboardNav() {
+    // Select all visible/selectable buttons in the active page
+    function getSelectableButtons(): HTMLElement[] {
+      // Only buttons that are visible and not disabled
+      const btns = Array.from(document.querySelectorAll('button, [role="button"]')) as HTMLElement[];
+      return btns.filter(btn => {
+        const style = window.getComputedStyle(btn);
+        return style.display !== 'none' && style.visibility !== 'hidden' && !btn.hasAttribute('disabled') && btn.offsetParent !== null;
+      });
+    }
+
+    let focusedIdx = 0;
+
+    function focusBtn(idx: number) {
+      const btns = getSelectableButtons();
+      if (btns.length === 0) return;
+      focusedIdx = ((idx % btns.length) + btns.length) % btns.length;
+      btns[focusedIdx].focus();
+    }
+
+    function tryAutoFocus() {
+      // Focus first button in the active page
+      setTimeout(() => {
+        const btns = getSelectableButtons();
+        if (btns.length > 0) {
+          focusedIdx = 0;
+          btns[0].focus();
+        }
+      }, 50);
+    }
+
+    // Listen for page changes to re-focus
+    router.onNavigate((_, _to: string) => {
+      tryAutoFocus();
+    });
+
+    // Keydown handler
+    document.addEventListener('keydown', (e) => {
+      // Only handle if not typing in input/textarea
+      if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement)?.tagName)) return;
+      const btns = getSelectableButtons();
+      if (btns.length === 0) return;
+      if (e.key === 'a' || e.key === 'A') {
+        e.preventDefault();
+        focusBtn(focusedIdx + 1);
+      } else if (e.key === 's' || e.key === 'S') {
+        e.preventDefault();
+        btns[focusedIdx].click();
+      }
+    });
+
+    // Initial focus
+    setTimeout(tryAutoFocus, 100);
+  }
+
+  setupGlobalKeyboardNav();
 
   // 4. Connect WebSocket to Python backend
   motionDetector.connect();
 
-    // 6. Wire up joystick navigation
-    joystick.onDirection = (dir) => {
-      const focusable = Array.from(
-        document.querySelectorAll('button:not([disabled]), [tabindex="0"]')
-      ).filter((el) => {
-        const rect = (el as HTMLElement).getBoundingClientRect();
-        return rect.width > 0 && rect.height > 0;
-      }) as HTMLElement[];
 
-      const current = document.activeElement as HTMLElement;
-      let idx = focusable.indexOf(current);
-      if (idx === -1) idx = 0;
-
-      let next: HTMLElement | undefined;
-      if (dir === 'down' || dir === 'right') next = focusable[idx + 1] ?? focusable[0];
-      if (dir === 'up' || dir === 'left') next = focusable[idx - 1] ?? focusable[focusable.length - 1];
-
-      if (next) {
-        setJoystickFocus(next);
-      }
-    };
-
-    joystick.onClick = () => {
-      const focused = document.activeElement as HTMLElement;
-      focused?.click();
-    };
-
-    joystick.onToolScanned = (tool) => {
-      console.log('[NFC] Tool scanned:', tool);
-      document.dispatchEvent(new CustomEvent('tool-scanned', { detail: { tool } }));
-    };
-
-    // Add a connect joystick button to global controls
-    const joystickBtn = document.createElement('button');
-    joystickBtn.className = 'global-controls__btn';
-    joystickBtn.id = 'btn-connect-joystick';
-    joystickBtn.innerHTML = '<span class="global-controls__icon">🕹️</span><span class="global-controls__label">Joystick</span>';
-    joystickBtn.addEventListener('click', async () => {
-      try {
-        await joystick.connect();
-        joystickBtn.querySelector('.global-controls__label')!.textContent = 'Connected';
-        joystickBtn.style.opacity = '0.5';
-        // Set default focus to play button after short delay (let page settle)
-        setTimeout(() => {
-          const playBtn = document.querySelector('[data-page="play"], #btn-play, .btn-play, button[id*="play"]') as HTMLElement;
-          if (playBtn) setJoystickFocus(playBtn);
-        }, 300);
-      } catch (e) {
-        console.error('[JOY] Connection failed:', e);
-      }
-    });
-    globalControls.appendChild(joystickBtn);
 
   // 5. Debug logging
   document.addEventListener('motion-detected', ((e: CustomEvent) => {

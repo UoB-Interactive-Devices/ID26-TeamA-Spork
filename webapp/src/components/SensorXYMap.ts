@@ -16,23 +16,48 @@ const TRAIL_WIDTH = 2;
 
 interface Point { x: number; y: number }
 
+
 export class SensorXYMap {
   private el: HTMLElement;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
+  private overlayImg?: HTMLImageElement;
   private trail: Point[] = [];
   private confirmed = false;
   private sensorHandler: ((e: Event) => void) | null = null;
 
-  constructor(parent: HTMLElement) {
+  constructor(parent: HTMLElement, overlayImgSrc?: string, overlayOpacity = 1) {
     this.el = document.createElement('div');
     this.el.className = 'sensor-xy-map';
+    this.el.style.position = 'relative';
+    this.el.style.width = `${CANVAS_SIZE}px`;
+    this.el.style.height = `${CANVAS_SIZE}px`;
+    this.el.style.background = 'none';
 
     this.canvas = document.createElement('canvas');
     this.canvas.width = CANVAS_SIZE;
     this.canvas.height = CANVAS_SIZE;
     this.canvas.className = 'sensor-xy-map__canvas';
+    this.canvas.style.position = 'absolute';
+    this.canvas.style.top = '0';
+    this.canvas.style.left = '0';
+    this.canvas.style.zIndex = '1';
     this.ctx = this.canvas.getContext('2d')!;
+
+    if (overlayImgSrc) {
+      this.overlayImg = document.createElement('img');
+      this.overlayImg.src = overlayImgSrc;
+      this.overlayImg.alt = 'Motion Guide';
+      this.overlayImg.style.position = 'absolute';
+      this.overlayImg.style.top = '0';
+      this.overlayImg.style.left = '0';
+      this.overlayImg.style.width = `${CANVAS_SIZE}px`;
+      this.overlayImg.style.height = `${CANVAS_SIZE}px`;
+      this.overlayImg.style.opacity = String(overlayOpacity);
+      this.overlayImg.style.pointerEvents = 'none';
+      this.overlayImg.style.zIndex = '2';
+      this.el.appendChild(this.overlayImg);
+    }
 
     this.el.appendChild(this.canvas);
     parent.appendChild(this.el);
