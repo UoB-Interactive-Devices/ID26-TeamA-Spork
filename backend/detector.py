@@ -46,10 +46,11 @@ TEABAG_RHYTHM_LOW_HZ = 1.5
 TEABAG_RHYTHM_HIGH_HZ = 3.5
 TEABAG_RHYTHM_RATIO = 0.30
 ACTIVE_MAGNITUDE_MULTIPLIER = 2.0
-UP_DOWN_MIN_PEAK = 200.0
-UP_DOWN_MAX_PEAKS = 3
+UP_DOWN_MIN_PEAK = 100.0
+UP_DOWN_MAX_PEAKS = 5
+PRESS_DOWN_HIGH_CONFIDENCE_PEAK = 200.0
 CV_THRESHOLD = 0.5
-UP_DOWN_AXIS_RATIO = 0.7
+UP_DOWN_AXIS_RATIO = 0.5
 
 # Circular / grinding (X-Y rotation) thresholds
 CIRCULAR_MIN_CIRCLES = 2.0         # at least 2 full rotations in the X-Y plane
@@ -196,28 +197,30 @@ def classify(features: dict, magnitude: np.ndarray | None = None,
              noise_floor: float = 15.0) -> tuple[str | None, float]:
     if magnitude is not None and len(magnitude) > 0:
         # Reject if signal never significantly exceeds noise
-        if float(np.max(magnitude)) < noise_floor * 5.0:
+        if float(np.max(magnitude)) < noise_floor * 3.0:
             return (None, 0.0)
     if features["mag_mean"] < NO_MOTION_THRESHOLD:
         return (None, 0.0)
     if magnitude is None or len(magnitude) == 0:
         return (None, 0.0)
-    # Check teabag first — rhythm is the strongest signal
+    # Teabag — rhythm + sustained
     if has_rhythmic_content(magnitude):
         duration = active_duration(magnitude, noise_floor)
         if duration >= TEABAG_MIN_ACTIVE_DURATION:
-            # confidence = hardcoded 0.9 — detection is binary, rhythm either present or not
-            return ("up_down", 0.9)  # frontend expects 'up_down' for teabag
-    # Check up_down — requires peaks, high CV, high peak, dominant axis z
+            return ('up_down', 0.9)
+    # press_down — short isolated peaks
+    duration = active_duration(magnitude, noise_floor)
     cv = features['mag_std'] / (features['mag_mean'] + 0.1)
     peaks, _ = find_peaks(magnitude, height=noise_floor * 3.0, distance=SAMPLE_RATE // 2)
     if (1 <= len(peaks) <= UP_DOWN_MAX_PEAKS
             and features['mag_max'] > UP_DOWN_MIN_PEAK
             and cv > CV_THRESHOLD
-            and features['z_std'] >= features['y_std'] * UP_DOWN_AXIS_RATIO
-            and features['z_std'] >= features['x_std'] * UP_DOWN_AXIS_RATIO):
+            and (
+                (features['z_std'] >= features['y_std'] * UP_DOWN_AXIS_RATIO and features['z_std'] >= features['x_std'] * UP_DOWN_AXIS_RATIO)
+                or features['mag_max'] > PRESS_DOWN_HIGH_CONFIDENCE_PEAK
+            )):
         peak_conf = min(1.0, features['mag_max'] / 500.0)
-        return ('press_down', round(peak_conf, 2))  # frontend expects 'press_down' for up_down
+        return ('press_down', round(peak_conf, 2))
     # Circular fallback — should only occur on horizontal axes
     if features['dominant_axis'] == 'z':
         return (None, 0.0)
@@ -230,11 +233,14 @@ def classify(features: dict, magnitude: np.ndarray | None = None,
         rot_conf = min(1.0, abs(features['xy_circles']) / 4.0)
         return ('grinding', round((circ_conf + rot_conf) / 2.0, 2))
     # Weak fallback — active on X-Y but didn't meet rotation criteria
+    # Only classify as grinding if active duration is under 20 seconds
+    # (prevents long up_down recordings from falling through)
+    dur = active_duration(magnitude, noise_floor)
     active_fraction = float(np.sum(magnitude > noise_floor)) / len(magnitude)
     active_conf = min(1.0, active_fraction / 0.7)
     mag_conf = min(1.0, features['mag_mean'] / 100.0)
     combined = round((active_conf + mag_conf) / 2.0, 2)
-    if combined >= 0.4:
+    if combined >= 0.4 and dur <= 20.0:
         return ('grinding', combined)
     return (None, 0.0)
 

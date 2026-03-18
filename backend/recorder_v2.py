@@ -139,6 +139,7 @@ def record_session(port: str, baud_rate: int = BAUD_RATE):
         print(f"  TOOL: {tool_name} ({tool_uid})")
         print(f"{'#' * 60}\n")
         for motion in ALL_MOTIONS:
+
             start_idx = 1
             print(f"\n  {'=' * 50}")
             print(f"  MOTION: {motion.upper()} (Tool: {tool_name})")
@@ -151,71 +152,73 @@ def record_session(port: str, baud_rate: int = BAUD_RATE):
                 print(f"\n  --- {filename} ({i + 1}/{RECORDINGS_PER_MOTION}) ---")
                 input("  Press ENTER when ready (hold sensor still)...")
 
-            # Phase 1: Calibrate
-            print(f"  [CALIBRATING] Hold still... ({CALIBRATION_SECONDS:.0f}s)")
-            cal_samples = collect_samples(CALIBRATION_SECONDS)
-            print(f"    Collected {len(cal_samples)} calibration samples")
+                # Phase 1: Calibrate
+                print(f"  [CALIBRATING] Hold still... ({CALIBRATION_SECONDS:.0f}s)")
+                cal_samples = collect_samples(CALIBRATION_SECONDS)
+                print(f"    Collected {len(cal_samples)} calibration samples")
 
-            # Phase 2: Countdown
-            print(f"  [COUNTDOWN] Get ready...")
-            countdown_t0 = time.time()
-            countdown_samples = []
-            printed_secs = set()
-            while time.time() - countdown_t0 < COUNTDOWN_SECONDS:
-                xyz = read_sample()
-                if xyz:
-                    ts_ms = (time.time() - countdown_t0) * 1000.0
-                    countdown_samples.append((ts_ms, xyz[0], xyz[1], xyz[2]))
-                remaining = COUNTDOWN_SECONDS - (time.time() - countdown_t0)
-                sec = int(remaining) + 1
-                if sec not in printed_secs and 1 <= sec <= COUNTDOWN_SECONDS:
-                    printed_secs.add(sec)
-                    print(f"    {sec}...")
+                # Phase 2: Countdown
+                print(f"  [COUNTDOWN] Get ready...")
+                countdown_t0 = time.time()
+                countdown_samples = []
+                printed_secs = set()
+                while time.time() - countdown_t0 < COUNTDOWN_SECONDS:
+                    xyz = read_sample()
+                    if xyz:
+                        ts_ms = (time.time() - countdown_t0) * 1000.0
+                        countdown_samples.append((ts_ms, xyz[0], xyz[1], xyz[2]))
+                    remaining = COUNTDOWN_SECONDS - (time.time() - countdown_t0)
+                    sec = int(remaining) + 1
+                    if sec not in printed_secs and 1 <= sec <= COUNTDOWN_SECONDS:
+                        printed_secs.add(sec)
+                        print(f"    {sec}...")
 
-            # Phase 3: Record
-            print(f"  [RECORDING] >>> GO! Perform '{motion}' now! ({RECORD_DURATION_SECONDS:.0f}s) <<<")
-            rec_t0 = time.time()
+                # Phase 3: Record
+                print(f"  [RECORDING] >>> GO! Perform '{motion}' now! ({RECORD_DURATION_SECONDS:.0f}s) <<<")
+                rec_t0 = time.time()
 
-            # We save ALL samples (baseline prefix + motion) in one CSV,
-            # same format as web dashboard: timestamp,x_uT,y_uT,z_uT
-            all_rows = []
+                # We save ALL samples (baseline prefix + motion) in one CSV,
+                # same format as web dashboard: timestamp,x_uT,y_uT,z_uT
+                all_rows = []
 
-            # Add calibration samples as baseline prefix
-            for ts_ms, x, y, z in cal_samples:
-                all_rows.append((ts_ms, x, y, z))
+                # Add calibration samples as baseline prefix
+                for ts_ms, x, y, z in cal_samples:
+                    all_rows.append((ts_ms, x, y, z))
 
-            # Add countdown samples (extends baseline)
-            offset_ms = cal_samples[-1][0] if cal_samples else 0.0
-            for ts_ms, x, y, z in countdown_samples:
-                all_rows.append((offset_ms + ts_ms, x, y, z))
+                # Add countdown samples (extends baseline)
+                offset_ms = cal_samples[-1][0] if cal_samples else 0.0
+                for ts_ms, x, y, z in countdown_samples:
+                    all_rows.append((offset_ms + ts_ms, x, y, z))
 
-            # Record motion samples
-            base_offset = all_rows[-1][0] if all_rows else 0.0
-            rec_count = 0
-            printed_rec_secs = set()
-            while time.time() - rec_t0 < RECORD_DURATION_SECONDS:
-                xyz = read_sample()
-                if xyz:
-                    ts_ms = base_offset + (time.time() - rec_t0) * 1000.0
-                    all_rows.append((ts_ms, xyz[0], xyz[1], xyz[2]))
-                    rec_count += 1
-                remaining = RECORD_DURATION_SECONDS - (time.time() - rec_t0)
-                sec = int(remaining)
-                if sec not in printed_rec_secs and sec < RECORD_DURATION_SECONDS:
-                    printed_rec_secs.add(sec)
-                    x_c, y_c, z_c = xyz
-                    mag = math.sqrt(x_c**2 + y_c**2 + z_c**2)
-                    print(f"    {sec + 1}s remaining... ({rec_count} samples, |raw|={mag:.1f})")
+                # Record motion samples
+                base_offset = all_rows[-1][0] if all_rows else 0.0
+                rec_count = 0
+                printed_rec_secs = set()
+                while time.time() - rec_t0 < RECORD_DURATION_SECONDS:
+                    xyz = read_sample()
+                    if xyz:
+                        ts_ms = base_offset + (time.time() - rec_t0) * 1000.0
+                        all_rows.append((ts_ms, xyz[0], xyz[1], xyz[2]))
+                        rec_count += 1
+                    remaining = RECORD_DURATION_SECONDS - (time.time() - rec_t0)
+                    sec = int(remaining)
+                    if sec not in printed_rec_secs and sec < RECORD_DURATION_SECONDS:
+                        printed_rec_secs.add(sec)
+                        x_c, y_c, z_c = xyz
+                        mag_x = abs(x_c)
+                        mag_y = abs(y_c)
+                        mag_z = abs(z_c)
+                        print(f"    {sec + 1}s remaining... ({rec_count} samples, |x|={mag_x:.1f}, |y|={mag_y:.1f}, |z|={mag_z:.1f})")
 
-            # Save CSV
-            with open(filepath, "w", newline="") as f:
-                writer = csv.writer(f)
-                writer.writerow(["timestamp", "x_uT", "y_uT", "z_uT"])
-                for ts_ms, x, y, z in all_rows:
-                    writer.writerow([f"{ts_ms:.1f}", f"{x:.2f}", f"{y:.2f}", f"{z:.2f}"])
+                # Save CSV
+                with open(filepath, "w", newline="") as f:
+                    writer = csv.writer(f)
+                    writer.writerow(["timestamp", "x_uT", "y_uT", "z_uT"])
+                    for ts_ms, x, y, z in all_rows:
+                        writer.writerow([f"{ts_ms:.1f}", f"{x:.2f}", f"{y:.2f}", f"{z:.2f}"])
 
-            total_saved += 1
-            print(f"  [SAVED] {filepath.name}  ({len(all_rows)} total samples, {rec_count} motion samples)")
+                total_saved += 1
+                print(f"  [SAVED] {filepath.name}  ({len(all_rows)} total samples, {rec_count} motion samples)")
 
     ser.close()
     print(f"\n  {'=' * 50}")
