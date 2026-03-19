@@ -18,10 +18,29 @@ import { MotionPrompt } from '../components/MotionPrompt.ts';
 import { CountdownFlash } from '../components/CountdownFlash.ts';
 import { SensorXYMap } from '../components/SensorXYMap.ts';
 import { SensorZStrip } from '../components/SensorZStrip.ts';
+import { assetUrl } from '../utils/asset.ts';
 
 const CHOREO_REPLAY_STORAGE_KEY = 'spork_choreo_replay';
 const BACKEND_PROMPT_TIMEOUT_MS = 15000;
 const PASS_THRESHOLD = 0.6;
+
+/**
+ * Every physical NFC tool → its display asset path.
+ * Keys must exactly match NFC_TAGS values in classifier.py.
+ */
+const TOOL_ASSETS: Record<string, string> = {
+  'Coffee Grinder': assetUrl('/assets/front_grinder.PNG'),
+  'Milk':           assetUrl('/assets/front_milk.PNG'),
+  'Coffee Press':   assetUrl('/assets/front_press.PNG'),
+  'Sieve':          assetUrl('/assets/front_sieve.PNG'),
+  'Spork':          assetUrl('/assets/front_spork.png'),
+  'Tea Bag':        assetUrl('/assets/front_tea.PNG'),
+  'Tongs':          assetUrl('/assets/front_tongs.png'),
+  'Whisk':          assetUrl('/assets/front_whisk.PNG'),
+};
+
+/** All physical tool names — must match NFC_TAGS values in classifier.py */
+const ALL_TOOLS = Object.keys(TOOL_ASSETS);
 
 type PlayStep = {
   motion: MotionType;
@@ -103,6 +122,28 @@ function startLevel(page: HTMLElement): void {
   const isChoreographyReplay = Boolean(replay);
   const runName              = replay ? replay.name : level.name;
   const runPassingScore      = replay ? 70 : level.passingScore;
+
+  /**
+   * Generate random steps using all 8 tools and 3 motions independently,
+   * matching the level's step count and duration — same as the backend does.
+   * When the backend IS connected, applyBackendPromptToStep() will overwrite
+   * each step's motion/tool as the backend sends prompts.
+   */
+  function makeRandomSteps(count: number, duration: number): PlayStep[] {
+    const motions: MotionType[] = ['grinding', 'up_down', 'press_down'];
+    return Array.from({ length: count }, (_, i) => {
+      const motion = motions[Math.floor(Math.random() * motions.length)];
+      const tool   = ALL_TOOLS[Math.floor(Math.random() * ALL_TOOLS.length)];
+      return {
+        motion,
+        duration,
+        label:       `Step ${i + 1}`,
+        description: MOTION_META[motion].description,
+        tool,
+      };
+    });
+  }
+
   const runSteps: PlayStep[] = replay
     ? replay.steps.map((step, index) => ({
         motion:      step.motion,
@@ -111,7 +152,7 @@ function startLevel(page: HTMLElement): void {
         description: MOTION_META[step.motion].description,
         tool:        step.tool,
       }))
-    : level.steps;
+    : makeRandomSteps(level.steps.length, level.steps[0]?.duration ?? 8);
 
   const VISUAL_STAMP_COUNT = runSteps.length;
   const stampVisualClasses = Array.from({ length: VISUAL_STAMP_COUNT }, (_, i) => `stamp-${i + 1}`);
@@ -145,15 +186,17 @@ function startLevel(page: HTMLElement): void {
     return dot;
   });
 
-  // Stamps
+  // Stamps — show the tool asset (what to scan), not the motion asset
   const stamps: HTMLElement[] = Array.from({ length: VISUAL_STAMP_COUNT }, (_, i) => {
-    const stepMotion = runSteps[i].motion;
-    const stamp      = document.createElement('div');
-    stamp.className  = `play-stamp ${stampVisualClasses[i]}`;
-    stamp.title      = formatToolName(runSteps[i].tool, MOTION_META[stepMotion].prop);
-    stamp.innerHTML  = `
+    const step     = runSteps[i];
+    const assetSrc = (step.tool && TOOL_ASSETS[step.tool]) ?? MOTION_META[step.motion].asset;
+    const assetAlt = step.tool ?? MOTION_META[step.motion].label;
+    const stamp    = document.createElement('div');
+    stamp.className = `play-stamp ${stampVisualClasses[i]}`;
+    stamp.title     = formatToolName(step.tool, MOTION_META[step.motion].prop);
+    stamp.innerHTML = `
       <div class="play-stamp__inner">
-        <img class="play-stamp__asset" src="${MOTION_META[stepMotion].asset}" alt="${MOTION_META[stepMotion].label}" />
+        <img class="play-stamp__asset" src="${assetSrc}" alt="${assetAlt}" />
       </div>`;
     stampsEl.appendChild(stamp);
     return stamp;
@@ -231,10 +274,12 @@ function startLevel(page: HTMLElement): void {
     step.tool   = tool;
     const stamp = stamps[stepIndex];
     if (!stamp) return;
-    const meta = MOTION_META[motion];
-    stamp.title = formatToolName(tool, meta.prop);
+    stamp.title = formatToolName(tool, MOTION_META[motion].prop);
     const img = stamp.querySelector('.play-stamp__asset') as HTMLImageElement | null;
-    if (img) { img.src = meta.asset; img.alt = meta.label; }
+    if (img) {
+      img.src = (tool && TOOL_ASSETS[tool]) ?? MOTION_META[motion].asset;
+      img.alt = tool ?? MOTION_META[motion].label;
+    }
   }
 
   function updateVisualProgress(): void {
