@@ -1,26 +1,23 @@
 /**
- * TutorialDetail page — shows what motion to perform for a specific prop,
- * with a visual demonstration area and real-time sensor feedback.
+ * TutorialDetail page — shows what motion to perform for a specific prop.
  *
- * When bridge_tutorial.py is running (ws://localhost:8765):
- *   - Backend drives the sequence: prompt → NFC scan → countdown → score → result
- *   - Frontend listens for CustomEvents emitted by tutorialBridge
- *
- * Keyboard fallback (no backend):
- *   - Space / Enter = correct motion
- *   - Any other key  = wrong motion
+ * Flow per step:
+ *   1. Show "Show your <Tool> to Mr Spork"  (scan phase)
+ *   2. NFC scanned → countdown 3…2…1 flashes fullscreen
+ *   3. Motion window (8 s backend / open-ended keyboard fallback)
+ *   4. Result ≥ 60% confidence → success, else fail/retry
  */
 import { router } from './router.ts';
 import { MOTION_META, type MotionType } from '../types/motion.types.ts';
 import { GrinderTutorial } from '../components/GrinderTutorial.ts';
-import { DipTutorial } from '../components/DipTutorial.ts';
-import { PressTutorial } from '../components/PressTutorial.ts';
-import { CupFill } from '../components/CupFill.ts';
-import { SensorXYMap } from '../components/SensorXYMap.ts';
-import { SensorZStrip } from '../components/SensorZStrip.ts';
-import { tutorialBridge } from '../services/tutorialBridge.ts';
+import { DipTutorial }     from '../components/DipTutorial.ts';
+import { PressTutorial }   from '../components/PressTutorial.ts';
+import { CupFill }         from '../components/CupFill.ts';
+import { SensorXYMap }     from '../components/SensorXYMap.ts';
+import { SensorZStrip }    from '../components/SensorZStrip.ts';
+import { CountdownFlash }  from '../components/CountdownFlash.ts';
+import { tutorialBridge }  from '../services/tutorialBridge.ts';
 
-/** Tutorial order — matches the cards on the Tutorial page */
 const TUTORIAL_ORDER: MotionType[] = ['grinding', 'up_down', 'press_down'];
 
 export function createTutorialDetail(): HTMLElement {
@@ -39,65 +36,43 @@ export function createTutorialDetail(): HTMLElement {
       <p id="td-label" class="subtitle"></p>
       <p id="td-desc"></p>
 
-      <!-- Tutorial animation component mounts here -->
       <div id="td-grinder-container"></div>
 
-      <!-- Visual demonstration placeholder for unknown motions -->
       <div id="td-demo" class="tutorial-demo-area" style="
-        width: 100%;
-        height: 180px;
+        width: 100%; height: 180px;
         border-radius: var(--radius-lg);
         background: var(--bg-card);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1rem;
-        color: var(--text-muted);
+        display: flex; align-items: center; justify-content: center;
+        font-size: 1rem; color: var(--text-muted);
         box-shadow: var(--shadow-soft);
       ">
         <span id="td-demo-text">Perform the motion to see feedback</span>
       </div>
 
-      <!-- Real-time feedback indicator -->
       <div id="td-feedback" class="stack" style="min-height: 60px;">
         <div id="td-status" style="
-          font-family: var(--font-display);
-          font-size: 1.3rem;
-          color: var(--text-muted);
-          transition: color var(--duration-mid);
+          font-family: var(--font-display); font-size: 1.3rem;
+          color: var(--text-muted); transition: color var(--duration-mid);
         ">Waiting for motion…</div>
         <div id="td-confidence-bar" style="
-          width: 100%;
-          max-width: 300px;
-          height: 8px;
-          border-radius: var(--radius-pill);
-          background: var(--bg-card);
-          overflow: hidden;
+          width: 100%; max-width: 300px; height: 8px;
+          border-radius: var(--radius-pill); background: var(--bg-card); overflow: hidden;
         ">
           <div id="td-confidence-fill" style="
-            width: 0%;
-            height: 100%;
-            background: var(--accent-sage);
+            width: 0%; height: 100%; background: var(--accent-sage);
             border-radius: var(--radius-pill);
             transition: width var(--duration-mid) var(--ease-out-soft), background var(--duration-mid);
           "></div>
         </div>
       </div>
 
-      <!-- Backend scan instruction -->
       <div id="td-scan-prompt" class="play-scan-prompt hidden"></div>
     </div>
 
-    <!-- Sensor-reactive visualiser -->
     <div id="td-cup-container" class="td-cup-container"></div>
-
-    <!-- Radial flash overlay (success / wrong) -->
-    <div id="td-flash" class="td-flash"></div>
-
-    <!-- Motion counter -->
+    <div id="td-flash"   class="td-flash"></div>
     <div id="td-counter" class="td-counter"></div>
 
-    <!-- Success popup -->
     <div id="td-popup" class="td-popup hidden">
       <div class="td-popup__card">
         <h3 class="td-popup__title">Nice work!</h3>
@@ -105,17 +80,14 @@ export function createTutorialDetail(): HTMLElement {
         <div class="td-popup__actions">
           <button class="btn btn--ghost btn--small" data-popup="stay">Try Again</button>
           <button class="btn btn--ghost btn--small hidden" data-popup="redo">Redo Tutorial</button>
-          <button class="btn btn--gold btn--small" data-popup="next">Next Tutorial</button>
+          <button class="btn btn--gold btn--small"  data-popup="next">Next Tutorial</button>
         </div>
       </div>
     </div>
   `;
 
-  /* ── Back ── */
   page.querySelector('[data-action="back"]')!
     .addEventListener('click', () => router.go('tutorial'));
-
-  /* ── Popup buttons ── */
   page.querySelector('[data-popup="stay"]')!
     .addEventListener('click', () => handleStay(page));
   page.querySelector('[data-popup="redo"]')!
@@ -132,12 +104,13 @@ export function createTutorialDetail(): HTMLElement {
   let motionFailedHandler:     ((e: Event) => void) | null = null;
   let tutorialCompleteHandler: ((e: Event) => void) | null = null;
 
-  let grinder:  GrinderTutorial | null = null;
-  let dipTut:   DipTutorial     | null = null;
-  let pressTut: PressTutorial   | null = null;
-  let cup:      CupFill         | null = null;
-  let xyMap:    SensorXYMap     | null = null;
-  let zStrip:   SensorZStrip    | null = null;
+  let grinder:       GrinderTutorial | null = null;
+  let dipTut:        DipTutorial     | null = null;
+  let pressTut:      PressTutorial   | null = null;
+  let cup:           CupFill         | null = null;
+  let xyMap:         SensorXYMap     | null = null;
+  let zStrip:        SensorZStrip    | null = null;
+  let countdownFlash: CountdownFlash | null = null;
 
   let resolved      = false;
   let successCount  = 0;
@@ -145,8 +118,7 @@ export function createTutorialDetail(): HTMLElement {
   const SUCCESS_STEP        = 1;
   const SUCCESS_DEBOUNCE_MS = 600;
   const REQUIRED_SUCCESSES  = 2;
-
-  // ── Animation helpers — now just direct method calls ──────────────────────
+  const PASS_THRESHOLD      = 0.6;  // 60 % accuracy required
 
   function triggerSuccess(): void {
     grinder?.triggerSuccess();
@@ -159,8 +131,6 @@ export function createTutorialDetail(): HTMLElement {
     dipTut?.triggerWrong();
     pressTut?.triggerWrong();
   }
-
-  // ── Listener cleanup ──────────────────────────────────────────────────────
 
   function cleanupListeners(): void {
     if (motionHandler)           { document.removeEventListener('motion-detected',       motionHandler);           motionHandler = null; }
@@ -175,19 +145,21 @@ export function createTutorialDetail(): HTMLElement {
   /* ── Activate / deactivate ── */
   const observer = new MutationObserver(() => {
     if (page.classList.contains('active')) {
-      resolved      = false;
-      successCount  = 0;
-      lastSuccessAt = 0;
+      resolved = false; successCount = 0; lastSuccessAt = 0;
       hidePopup(page);
       updateCounter(page, 0, REQUIRED_SUCCESSES);
 
       const motion = (page.dataset.motion ?? 'grinding') as MotionType;
       setupDetail(page, motion);
 
-      // Tear down previous component
+      // Tear down old components
       (page.querySelector('#td-grinder-container') as HTMLElement).innerHTML = '';
       grinder = dipTut = pressTut = null;
       cup = xyMap = zStrip = null;
+
+      // Re-create countdown flash for this page activation
+      countdownFlash?.destroy();
+      countdownFlash = new CountdownFlash(page);
 
       // Sensor visualiser
       const cupContainer = page.querySelector('#td-cup-container') as HTMLElement;
@@ -207,29 +179,24 @@ export function createTutorialDetail(): HTMLElement {
       }
 
       // Tutorial animation component
-      const container = page.querySelector('#td-grinder-container') as HTMLElement;
-      const demoEl    = page.querySelector('#td-demo')     as HTMLElement;
+      const container  = page.querySelector('#td-grinder-container') as HTMLElement;
+      const demoEl     = page.querySelector('#td-demo')     as HTMLElement;
       const feedbackEl = page.querySelector('#td-feedback') as HTMLElement;
 
       if (motion === 'grinding') {
         grinder = new GrinderTutorial(container);
-        // start() registers the internal motion-detected listener for self-driven
-        // mode; TutorialDetail also calls triggerSuccess/Wrong directly as needed.
         grinder.start();
-        demoEl.style.display    = 'none';
-        feedbackEl.style.display = 'none';
+        demoEl.style.display = feedbackEl.style.display = 'none';
       } else if (motion === 'up_down') {
         dipTut = new DipTutorial(container);
         dipTut.start();
-        demoEl.style.display    = 'none';
-        feedbackEl.style.display = 'none';
+        demoEl.style.display = feedbackEl.style.display = 'none';
       } else if (motion === 'press_down') {
         pressTut = new PressTutorial(container);
         pressTut.start();
-        demoEl.style.display    = 'none';
-        feedbackEl.style.display = 'none';
+        demoEl.style.display = feedbackEl.style.display = 'none';
       } else {
-        demoEl.style.display    = 'flex';
+        demoEl.style.display = 'flex';
         feedbackEl.style.display = 'flex';
       }
 
@@ -237,13 +204,44 @@ export function createTutorialDetail(): HTMLElement {
         setTimeout(() => { cup?.reset(); xyMap?.reset(); zStrip?.reset(); }, 500);
       };
 
-      // ── Wire backend or keyboard ─────────────────────────────────────────
+      // Helper: handle a confirmed-pass result
+      const handlePass = (confidence: number): void => {
+        if (resolved) return;
+        const now = Date.now();
+        if (now - lastSuccessAt < SUCCESS_DEBOUNCE_MS) return;
+        lastSuccessAt = now;
+
+        scanPromptEl.classList.add('hidden');
+        triggerSuccess();
+        cup?.confirmFill(confidence);
+        xyMap?.confirm();
+        zStrip?.confirm();
+        successCount = Math.min(REQUIRED_SUCCESSES, successCount + SUCCESS_STEP);
+        updateCounter(page, successCount, REQUIRED_SUCCESSES);
+
+        if (successCount >= REQUIRED_SUCCESSES) {
+          resolved = true;
+          onSuccess(page);
+        } else {
+          setTimeout(() => { cup?.reset(); xyMap?.reset(); zStrip?.reset(); }, 1200);
+          flashRadial(page, 'success');
+        }
+      };
+
+      // Helper: handle a fail result
+      const handleFail = (): void => {
+        flashRadial(page, 'wrong');
+        triggerWrong();
+        resetFeedbackVisuals();
+      };
+
       tutorialBridge.connect();
       const scanPromptEl = page.querySelector('#td-scan-prompt') as HTMLElement;
 
       if (tutorialBridge.isConnected()) {
-        // ── Backend path ───────────────────────────────────────────────────
+        // ── Backend path ─────────────────────────────────────────────────
 
+        // Step 1: show which tool to scan
         promptHandler = ((e: Event) => {
           const detail = (e as CustomEvent).detail as {
             motion: MotionType; tool: string; action: number; totalActions: number;
@@ -255,63 +253,55 @@ export function createTutorialDetail(): HTMLElement {
         });
         document.addEventListener('tutorial-prompt', promptHandler);
 
+        // Step 2: backend sends countdown ticks after correct NFC scan
         countdownHandler = ((e: Event) => {
           const detail = (e as CustomEvent).detail as { seconds: number };
-          scanPromptEl.classList.remove('hidden');
-          scanPromptEl.textContent = detail.seconds > 0 ? `Get ready… ${detail.seconds}` : 'Go!';
-          if (detail.seconds <= 1) {
+          if (detail.seconds > 0) {
+            // Flash the number fullscreen
+            countdownFlash!.flash(detail.seconds);
+            scanPromptEl.classList.remove('hidden');
+            scanPromptEl.textContent = `Get ready… ${detail.seconds}`;
+          } else {
+            // Countdown done → start motion window
+            countdownFlash!.hide();
+            scanPromptEl.classList.remove('hidden');
+            scanPromptEl.textContent = 'Do the motion now!';
             updateStatus(page, 'Do the motion now!', 'var(--accent-gold)');
           }
         });
         document.addEventListener('tutorial-countdown', countdownHandler);
 
+        // Wrong NFC tag
         nfcWrongHandler = (() => {
           scanPromptEl.classList.remove('hidden');
           scanPromptEl.textContent = 'Wrong tool — try again!';
-          flashRadial(page, 'wrong');
-          triggerWrong();
-          resetFeedbackVisuals();
+          handleFail();
         });
         document.addEventListener('tutorial-nfc-wrong', nfcWrongHandler);
 
+        // Backend scored the motion — failed (retry skips NFC → next countdown)
         motionFailedHandler = (() => {
           scanPromptEl.classList.add('hidden');
           updateStatus(page, 'Not quite — try again!', 'var(--accent-rose)');
-          flashRadial(page, 'wrong');
-          triggerWrong();
-          resetFeedbackVisuals();
+          handleFail();
         });
         document.addEventListener('tutorial-motion-failed', motionFailedHandler);
 
-        // motion-detected is emitted by tutorialBridge when result.passed === true
+        // Backend scored the motion — passed (emitted as motion-detected)
         motionHandler = createMotionListener(page, motion,
           (confidence) => {
-            if (resolved) return;
-            const now = Date.now();
-            if (now - lastSuccessAt < SUCCESS_DEBOUNCE_MS) return;
-            lastSuccessAt = now;
-
-            scanPromptEl.classList.add('hidden');
-            triggerSuccess();
-            cup?.confirmFill(confidence);
-            xyMap?.confirm();
-            zStrip?.confirm();
-            successCount = Math.min(REQUIRED_SUCCESSES, successCount + SUCCESS_STEP);
-            updateCounter(page, successCount, REQUIRED_SUCCESSES);
-
-            if (successCount >= REQUIRED_SUCCESSES) {
-              resolved = true;
-              onSuccess(page);
+            if (confidence >= PASS_THRESHOLD) {
+              handlePass(confidence);
             } else {
-              setTimeout(() => { cup?.reset(); xyMap?.reset(); zStrip?.reset(); }, 1200);
-              flashRadial(page, 'success');
+              updateStatus(page, `${Math.round(confidence * 100)}% — need 60%+ to pass`, 'var(--accent-rose)');
+              handleFail();
             }
           },
-          () => { triggerWrong(); resetFeedbackVisuals(); },
+          () => handleFail(),
         );
         document.addEventListener('motion-detected', motionHandler);
 
-        // tutorial-complete fires after all 3 steps — only relevant on last step
+        // All 3 steps complete — only handle on last step
         if (motion === TUTORIAL_ORDER[TUTORIAL_ORDER.length - 1]) {
           tutorialCompleteHandler = (() => {
             if (resolved) return;
@@ -323,74 +313,82 @@ export function createTutorialDetail(): HTMLElement {
         }
 
       } else {
-        // ── Keyboard fallback ──────────────────────────────────────────────
-        scanPromptEl.classList.add('hidden');
+        // ── Keyboard fallback (no hardware) ──────────────────────────────
+        // Simulate scan phase: show prompt, wait for Space/Enter as "scan"
+        scanPromptEl.classList.remove('hidden');
+        scanPromptEl.textContent = 'Press Space to simulate NFC scan';
 
-        motionHandler = createMotionListener(page, motion,
-          (confidence) => {
-            if (resolved) return;
-            const now = Date.now();
-            if (now - lastSuccessAt < SUCCESS_DEBOUNCE_MS) return;
-            lastSuccessAt = now;
-
-            triggerSuccess();
-            cup?.confirmFill(confidence);
-            xyMap?.confirm();
-            zStrip?.confirm();
-            successCount = Math.min(REQUIRED_SUCCESSES, successCount + SUCCESS_STEP);
-            updateCounter(page, successCount, REQUIRED_SUCCESSES);
-
-            if (successCount >= REQUIRED_SUCCESSES) {
-              resolved = true;
-              onSuccess(page);
-            } else {
-              setTimeout(() => { cup?.reset(); xyMap?.reset(); zStrip?.reset(); }, 1200);
-              flashRadial(page, 'success');
-            }
-          },
-          () => { triggerWrong(); resetFeedbackVisuals(); },
-        );
-        document.addEventListener('motion-detected', motionHandler);
+        let scanDone = false;
 
         keyHandler = (e: KeyboardEvent) => {
           if (!page.classList.contains('active')) return;
-          if (!page.querySelector('#td-popup')!.classList.contains('hidden')) return;
+          if (page.querySelector('#td-popup')!.classList.contains('hidden') === false) return;
 
-          if (e.key === ' ' || e.key === 'Enter') {
+          if (!scanDone && (e.key === ' ' || e.key === 'Enter')) {
+            // Simulate scan → run 3-2-1 countdown
             e.preventDefault();
-            if (resolved) return;
-            const now = Date.now();
-            if (now - lastSuccessAt < SUCCESS_DEBOUNCE_MS) return;
-            lastSuccessAt = now;
+            scanDone = true;
+            document.removeEventListener('keydown', keyHandler!);
+            keyHandler = null;
 
-            triggerSuccess();
-            cup?.confirmFill(1);
-            xyMap?.confirm();
-            zStrip?.confirm();
-            successCount = Math.min(REQUIRED_SUCCESSES, successCount + SUCCESS_STEP);
-            updateCounter(page, successCount, REQUIRED_SUCCESSES);
+            scanPromptEl.textContent = 'Get ready…';
+            let count = 3;
+            countdownFlash!.flash(count);
 
-            if (successCount >= REQUIRED_SUCCESSES) {
-              resolved = true;
-              onSuccess(page);
-            } else {
-              setTimeout(() => { cup?.reset(); xyMap?.reset(); zStrip?.reset(); }, 1200);
-              flashRadial(page, 'success');
-            }
-          } else if (e.key.length === 1) {
-            document.dispatchEvent(new CustomEvent('motion-detected', {
-              detail: { motion: 'unknown', confidence: 0 },
-            }));
-            triggerWrong();
-            resetFeedbackVisuals();
+            const countInterval = setInterval(() => {
+              count--;
+              if (count > 0) {
+                countdownFlash!.flash(count);
+                scanPromptEl.textContent = `Get ready… ${count}`;
+              } else {
+                clearInterval(countInterval);
+                countdownFlash!.hide();
+                scanPromptEl.textContent = 'Do the motion now!';
+                updateStatus(page, 'Do the motion now! (Space = correct, any key = wrong)', 'var(--accent-gold)');
+
+                // After countdown — register motion listener + keyboard motion fallback
+                motionHandler = createMotionListener(page, motion,
+                  (confidence) => {
+                    if (confidence >= PASS_THRESHOLD) {
+                      handlePass(confidence);
+                    } else {
+                      updateStatus(page, `${Math.round(confidence * 100)}% — need 60%+`, 'var(--accent-rose)');
+                      handleFail();
+                    }
+                  },
+                  () => handleFail(),
+                );
+                document.addEventListener('motion-detected', motionHandler);
+
+                keyHandler = (e2: KeyboardEvent) => {
+                  if (!page.classList.contains('active')) return;
+                  if (page.querySelector('#td-popup')!.classList.contains('hidden') === false) return;
+
+                  if (e2.key === ' ' || e2.key === 'Enter') {
+                    e2.preventDefault();
+                    if (resolved) return;
+                    // Simulate correct motion with full confidence
+                    document.dispatchEvent(new CustomEvent('motion-detected', {
+                      detail: { motion, confidence: 1 },
+                    }));
+                  } else if (e2.key.length === 1) {
+                    document.dispatchEvent(new CustomEvent('motion-detected', {
+                      detail: { motion: 'unknown', confidence: 0 },
+                    }));
+                  }
+                };
+                document.addEventListener('keydown', keyHandler);
+              }
+            }, 1000);
           }
         };
         document.addEventListener('keydown', keyHandler);
       }
 
     } else {
-      // Leaving page — clean up everything
+      // Leaving page — clean up
       cleanupListeners();
+      countdownFlash?.destroy(); countdownFlash = null;
       if (grinder)  { grinder.destroy();  grinder  = null; }
       if (dipTut)   { dipTut.destroy();   dipTut   = null; }
       if (pressTut) { pressTut.destroy(); pressTut = null; }
@@ -502,7 +500,6 @@ function showPopup(page: HTMLElement): void {
     (popup.querySelector('.td-popup__title') as HTMLElement).textContent = 'Nice work!';
     (popup.querySelector('.td-popup__text') as HTMLElement).textContent  = 'You completed this motion.';
   }
-
   popup.classList.remove('hidden');
 }
 
@@ -530,7 +527,6 @@ function handleNext(page: HTMLElement): void {
   hidePopup(page);
   const currentMotion = (page.dataset.motion ?? 'grinding') as MotionType;
   const idx = TUTORIAL_ORDER.indexOf(currentMotion);
-
   if (idx < TUTORIAL_ORDER.length - 1) {
     const nextMotion = TUTORIAL_ORDER[idx + 1];
     page.classList.add('td-slide-out-left');
