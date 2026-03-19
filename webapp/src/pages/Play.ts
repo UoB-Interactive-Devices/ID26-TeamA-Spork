@@ -3,11 +3,11 @@
  *
  * Flow per step:
  *   1. Show "Show your <Tool> to Mr Spork"  (scan phase)
- *      → Space/Enter simulates scan in keyboard fallback
+ *      → Space simulates scan in keyboard fallback
  *   2. NFC scanned → countdown 3…2…1 flashes fullscreen
+ *      → Sensor graph activates on first countdown tick
  *   3. 8-second motion window
- *      → Space/Enter simulates correct motion in keyboard fallback
- *      → Any other key simulates wrong motion
+ *      → Space simulates correct motion in keyboard fallback
  *   4. Result ≥ 60% confidence → pass, else fail
  */
 import { router } from './router.ts';
@@ -16,6 +16,8 @@ import { playBridge } from '../services/playBridge.ts';
 import { CupFill } from '../components/CupFill.ts';
 import { MotionPrompt } from '../components/MotionPrompt.ts';
 import { CountdownFlash } from '../components/CountdownFlash.ts';
+import { SensorXYMap } from '../components/SensorXYMap.ts';
+import { SensorZStrip } from '../components/SensorZStrip.ts';
 
 const CHOREO_REPLAY_STORAGE_KEY = 'spork_choreo_replay';
 const BACKEND_PROMPT_TIMEOUT_MS = 15000;
@@ -72,6 +74,8 @@ export function createPlayPage(): HTMLElement {
       <div id="play-cup-area" class="play-cup-wrap"></div>
       <div id="play-result" class="hidden stack play-result-overlay" style="text-align: center;"></div>
     </div>
+    <!-- Sensor graph — bottom-right, same position as tutorial -->
+    <div id="play-sensor-container" class="play-sensor-container"></div>
   `;
 
   page.querySelector('[data-action="back"]')!
@@ -112,15 +116,16 @@ function startLevel(page: HTMLElement): void {
   const VISUAL_STAMP_COUNT = runSteps.length;
   const stampVisualClasses = Array.from({ length: VISUAL_STAMP_COUNT }, (_, i) => `stamp-${i + 1}`);
 
-  const titleEl      = page.querySelector('#play-title')       as HTMLElement;
-  const progressEl   = page.querySelector('#play-progress')    as HTMLElement;
-  const stampsEl     = page.querySelector('#play-stamps')      as HTMLElement;
-  const promptArea   = page.querySelector('#play-prompt-area') as HTMLElement;
-  const scanPromptEl = page.querySelector('#play-scan-prompt') as HTMLElement;
-  const arrowArea    = page.querySelector('#play-arrow-area')  as HTMLElement;
-  const cupArea      = page.querySelector('#play-cup-area')    as HTMLElement;
-  const timerEl      = page.querySelector('#play-timer')       as HTMLElement;
-  const resultArea   = page.querySelector('#play-result')      as HTMLElement;
+  const titleEl         = page.querySelector('#play-title')            as HTMLElement;
+  const progressEl      = page.querySelector('#play-progress')         as HTMLElement;
+  const stampsEl        = page.querySelector('#play-stamps')           as HTMLElement;
+  const promptArea      = page.querySelector('#play-prompt-area')      as HTMLElement;
+  const scanPromptEl    = page.querySelector('#play-scan-prompt')      as HTMLElement;
+  const arrowArea       = page.querySelector('#play-arrow-area')       as HTMLElement;
+  const cupArea         = page.querySelector('#play-cup-area')         as HTMLElement;
+  const timerEl         = page.querySelector('#play-timer')            as HTMLElement;
+  const resultArea      = page.querySelector('#play-result')           as HTMLElement;
+  const sensorContainer = page.querySelector('#play-sensor-container') as HTMLElement;
 
   // Reset UI
   titleEl.textContent = isChoreographyReplay ? `Replay: ${runName}` : runName;
@@ -129,6 +134,7 @@ function startLevel(page: HTMLElement): void {
   scanPromptEl.classList.add('hidden');
   arrowArea.innerHTML = cupArea.innerHTML = resultArea.innerHTML = '';
   resultArea.classList.add('hidden');
+  sensorContainer.innerHTML = '';
 
   // Progress dots
   const dots: HTMLElement[] = Array.from({ length: VISUAL_STAMP_COUNT }, (_, i) => {
@@ -156,6 +162,50 @@ function startLevel(page: HTMLElement): void {
   const cup    = new CupFill(cupArea);
   const prompt = new MotionPrompt(promptArea);
   const countdownFlash = new CountdownFlash(page);
+
+  // Sensor graph refs — rebuilt per step based on the required motion
+  let xyMap:  SensorXYMap  | null = null;
+  let zStrip: SensorZStrip | null = null;
+
+  /** Tear down the current sensor graph */
+  function destroySensorGraph(): void {
+    if (xyMap)  { xyMap.destroy();  xyMap  = null; }
+    if (zStrip) { zStrip.destroy(); zStrip = null; }
+    sensorContainer.innerHTML = '';
+  }
+
+  /**
+   * Build the correct sensor graph for the given motion and start listening.
+   * - grinding  → SensorXYMap  (circular X/Y pattern)
+   * - up_down   → SensorZStrip (vertical Z bounce)
+   * - press_down→ SensorZStrip (downward Z push)
+   */
+  function buildSensorGraph(motion: MotionType): void {
+    destroySensorGraph();
+    if (motion === 'grinding') {
+      xyMap = new SensorXYMap(
+        sensorContainer,
+        '/ID26-TeamA-Spork/assets/motion_arrows/circle.PNG',
+        0.65,
+      );
+      xyMap.startListening();
+    } else if (motion === 'up_down') {
+      zStrip = new SensorZStrip(
+        sensorContainer,
+        '/ID26-TeamA-Spork/assets/motion_arrows/up_down.PNG',
+        0.65,
+      );
+      zStrip.startListening();
+    } else if (motion === 'press_down') {
+      zStrip = new SensorZStrip(
+        sensorContainer,
+        '/ID26-TeamA-Spork/assets/motion_arrows/press_down.PNG',
+        0.65,
+      );
+      zStrip.startListening();
+    }
+    // Unknown motion types get no sensor graph — container stays empty
+  }
 
   const useBackendRandom = !isChoreographyReplay;
   playBridge.connect();
@@ -218,11 +268,10 @@ function startLevel(page: HTMLElement): void {
     timerEl.removeAttribute('data-state');
   }
 
-  // ── Shared: register motion handler + keyboard motion fallback ───────────
+  // ── Shared: register motion handler + keyboard fallback ─────────────────
   // Called after countdown finishes (both backend and local paths).
 
-  function startMotionPhase(step: PlayStep, meta: ReturnType<typeof MOTION_META[MotionType]>, backendDriven: boolean): void {
-    // Motion event listener (from backend result or keyboard dispatch)
+  function startMotionPhase(step: PlayStep, meta: typeof MOTION_META[MotionType], backendDriven: boolean): void {
     motionHandler = ((e: Event) => {
       const detail = (e as CustomEvent).detail as { motion: MotionType; confidence: number };
       if (detail.motion === step.motion) {
@@ -230,6 +279,9 @@ function startLevel(page: HTMLElement): void {
           if (!backendDriven) prompt.stopTimer();
           prompt.markSuccess();
           score += detail.confidence ?? 0;
+          // Confirm the sensor graph (turns green)
+          xyMap?.confirm();
+          zStrip?.confirm();
           completedCorrect++;
           updateVisualProgress();
           cup.splash();
@@ -237,7 +289,6 @@ function startLevel(page: HTMLElement): void {
           currentStep++;
           setTimeout(advance, 800);
         } else {
-          // Recognised but below threshold — flash wrong, timer keeps running
           flashWrongStamp();
         }
       } else {
@@ -246,20 +297,15 @@ function startLevel(page: HTMLElement): void {
     });
     document.addEventListener('motion-detected', motionHandler);
 
-    // Keyboard fallback for motion phase — always active so devs can test
     if (!backendDriven) {
       keyHandler = (e: KeyboardEvent) => {
         if (!page.classList.contains('active')) return;
         if (!resultArea.classList.contains('hidden')) return;
         if (e.key === ' ') {
           e.preventDefault();
-          // Simulate a correct motion with full confidence
           document.dispatchEvent(new CustomEvent('motion-detected', {
             detail: { motion: step.motion, confidence: 1 },
           }));
-        } else if (e.key.length === 1) {
-          // Any other printable key = wrong motion
-          flashWrongStamp();
         }
       };
       document.addEventListener('keydown', keyHandler);
@@ -270,6 +316,9 @@ function startLevel(page: HTMLElement): void {
 
   function advance(): void {
     if (currentStep >= runSteps.length) { finish(); return; }
+
+    // Destroy any leftover sensor graph from the previous step
+    destroySensorGraph();
 
     const stepIndex     = currentStep;
     const backendDriven = useBackendRandom && playBridge.isConnected();
@@ -286,7 +335,6 @@ function startLevel(page: HTMLElement): void {
       scanPromptEl.classList.remove('hidden');
       scanPromptEl.textContent = `Show your ${formatToolName(step.tool, meta.prop)} to Mr Spork`;
 
-      // NFC scan event (fired by playBridge on correct scan)
       scanHandler = ((e: Event) => {
         const detail = (e as CustomEvent).detail as { tool?: string };
         if (detail?.tool) onScanComplete();
@@ -297,14 +345,11 @@ function startLevel(page: HTMLElement): void {
         backendNfcWrongHandler = () => flashWrongStamp();
         document.addEventListener('backend-nfc-wrong', backendNfcWrongHandler);
       } else {
-        // ── Keyboard fallback: Space/Enter = simulate NFC scan ──
+        // Space = simulate NFC scan
         keyHandler = (e: KeyboardEvent) => {
           if (!page.classList.contains('active')) return;
           if (!resultArea.classList.contains('hidden')) return;
-          if (e.key === ' ' || e.key === 'Enter') {
-            e.preventDefault();
-            onScanComplete();
-          }
+          if (e.key === ' ') { e.preventDefault(); onScanComplete(); }
         };
         document.addEventListener('keydown', keyHandler);
       }
@@ -327,7 +372,6 @@ function startLevel(page: HTMLElement): void {
   // ── Phase 2: Countdown → Motion ─────────────────────────────────────────
 
   function onScanComplete(): void {
-    // Clear scan-phase listeners
     if (scanHandler)            { document.removeEventListener('tool-scanned',     scanHandler);            scanHandler = null; }
     if (keyHandler)             { document.removeEventListener('keydown',           keyHandler);             keyHandler = null; }
     if (backendNfcWrongHandler) { document.removeEventListener('backend-nfc-wrong', backendNfcWrongHandler); backendNfcWrongHandler = null; }
@@ -351,43 +395,52 @@ function startLevel(page: HTMLElement): void {
 
     if (backendDriven) {
       // ── Backend path ─────────────────────────────────────────────────────
-      // Hide the circular timer — backend drives timing
       timerEl.textContent = '';
       timerEl.style.removeProperty('--sweep');
       timerEl.removeAttribute('data-state');
 
-      // Flash countdown numbers as backend sends them, show arrow + start
-      // motion phase when countdown reaches 0
+      let sensorStarted = false;
+
       countdownHandler = ((e: Event) => {
         const detail = (e as CustomEvent).detail as { seconds: number };
         if (detail.seconds > 0) {
           countdownFlash.flash(detail.seconds);
           scanPromptEl.textContent = `Get ready… ${detail.seconds}`;
+          // Start sensor graph on first countdown tick
+          if (!sensorStarted) {
+            sensorStarted = true;
+            buildSensorGraph(step.motion);
+          }
         } else {
           countdownFlash.hide();
-          scanPromptEl.textContent = 'Do the following motion!';
-          arrowArea.innerHTML = `<img class="play-arrow" src="${meta.arrow}" alt="${meta.label} motion" />`;
+          scanPromptEl.innerHTML = `Do the <strong>${meta.label}</strong> motion!`;
+          arrowArea.innerHTML = '';
         }
       });
       document.addEventListener('play-countdown', countdownHandler);
 
       backendFailHandler = ((e: Event) => {
         const detail = (e as CustomEvent).detail as { motion: MotionType };
-        if (detail.motion === step.motion) flashWrongStamp();
+        if (detail.motion === step.motion) {
+          flashWrongStamp();
+          xyMap?.reset();
+          zStrip?.reset();
+        }
       });
       document.addEventListener('backend-motion-failed', backendFailHandler);
 
-      // Register motion handler immediately — backend controls when to score
       startMotionPhase(step, meta, true);
 
     } else {
       // ── Local keyboard fallback path ─────────────────────────────────────
-      // Run 3-2-1 countdown in JS, then start 8-second motion window
       arrowArea.innerHTML = '';
 
       let count = 3;
       countdownFlash.flash(count);
       scanPromptEl.textContent = `Get ready… ${count}`;
+
+      // Start sensor graph immediately on first countdown tick
+      buildSensorGraph(step.motion);
 
       const countInterval = setInterval(() => {
         count--;
@@ -398,9 +451,8 @@ function startLevel(page: HTMLElement): void {
           clearInterval(countInterval);
           countdownFlash.hide();
 
-          // Countdown done — show arrow, start 8-second timer, register handlers
-          scanPromptEl.textContent = 'Do the following motion!';
-          arrowArea.innerHTML = `<img class="play-arrow" src="${meta.arrow}" alt="${meta.label} motion" />`;
+          scanPromptEl.innerHTML = `Do the <strong>${meta.label}</strong> motion!`;
+          arrowArea.innerHTML = '';
 
           // Circular sweep timer
           if (timerInterval) clearInterval(timerInterval);
@@ -428,18 +480,15 @@ function startLevel(page: HTMLElement): void {
             if (remaining <= 0) { clearInterval(timerInterval!); timerInterval = null; }
           }, 1000);
 
-          // Time's up — fail this step
           prompt.startTimer(step.duration, () => {
             prompt.markFail();
             flashWrongStamp();
+            destroySensorGraph();
             cleanupListeners();
             currentStep++;
             setTimeout(advance, 800);
           });
 
-          // Register motion handler + keyboard motion fallback
-          // This is the key fix: both are registered HERE, inside the countdown
-          // callback, so they only become active after the countdown finishes
           startMotionPhase(step, meta, false);
         }
       }, 1000);
@@ -451,6 +500,7 @@ function startLevel(page: HTMLElement): void {
   function finish(): void {
     prompt.destroy();
     countdownFlash.destroy();
+    destroySensorGraph();
     cleanupListeners();
 
     const pct       = Math.round((score / runSteps.length) * 100);
