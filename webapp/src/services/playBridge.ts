@@ -129,6 +129,9 @@ class PlayBridge {
           this.scanEmittedForAction = true;
           this.emit('tool-scanned', { tool: 'backend-confirmed' });
         }
+
+        // Also emit countdown seconds so the UI can show it
+        this.emit('play-countdown', { seconds: Number(msg.seconds ?? 0) });
         return;
       }
 

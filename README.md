@@ -80,8 +80,6 @@ Rituals, Habit formation, Proxy objects, Breaking, mindfulness with proxy object
 </details>
 
 ### Notes
-Week 20
-
 <details>
 <summary><strong>Week 20</strong></summary>
 
@@ -89,6 +87,14 @@ Week 20
 - tries different types of 3d matcha whisk but it fails -- hence using the normal balloon whisk 
 - motion detection work successfully 
 - storyboarded our gameplay 
+
+</details>
+
+<details>
+<summary><strong>Week 21</strong></summary>
+
+- completed the board - left with engraving in the shapes
+- 
 
 </details>
 
