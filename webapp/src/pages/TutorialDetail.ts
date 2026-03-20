@@ -20,7 +20,6 @@ import { SensorXYMap } from '../components/SensorXYMap.ts';
 import { SensorZStrip } from '../components/SensorZStrip.ts';
 import { CountdownFlash } from '../components/CountdownFlash.ts';
 import { tutorialBridge } from '../services/tutorialBridge.ts';
-import { assetUrl } from '../utils/asset.ts';
 
 /** Tutorial order — matches the cards on the Tutorial page */
 const TUTORIAL_ORDER: MotionType[] = ['grinding', 'up_down', 'press_down'];
@@ -168,7 +167,6 @@ export function createTutorialDetail(): HTMLElement {
   }
 
   function triggerWrong(): void {
-    flashRadial(page, 'wrong');
     grinder?.triggerWrong();
     dipTut?.triggerWrong();
     pressTut?.triggerWrong();
@@ -255,13 +253,13 @@ export function createTutorialDetail(): HTMLElement {
       const cupContainer = page.querySelector('#td-cup-container') as HTMLElement;
       cupContainer.innerHTML = '';
       if (motion === 'grinding') {
-        xyMap = new SensorXYMap(cupContainer, assetUrl('/assets/motion_arrows/circle.PNG'), 0.65);
+        xyMap = new SensorXYMap(cupContainer, MOTION_META['grinding'].arrow, 0.65);
         xyMap.startListening();
       } else if (motion === 'up_down') {
-        zStrip = new SensorZStrip(cupContainer, assetUrl('/assets/motion_arrows/up_down.PNG'), 0.65);
+        zStrip = new SensorZStrip(cupContainer, MOTION_META['up_down'].arrow, 0.65);
         zStrip.startListening();
       } else if (motion === 'press_down') {
-        zStrip = new SensorZStrip(cupContainer, assetUrl('/assets/motion_arrows/press_down.PNG'), 0.65);
+        zStrip = new SensorZStrip(cupContainer, MOTION_META['press_down'].arrow, 0.65);
         zStrip.startListening();
       } else {
         cup = new CupFill(cupContainer);

@@ -228,21 +228,21 @@ function startLevel(page: HTMLElement): void {
     if (motion === 'grinding') {
       xyMap = new SensorXYMap(
         sensorContainer,
-        assetUrl('/assets/motion_arrows/circle.PNG'),
+        MOTION_META['grinding'].arrow,
         0.65,
       );
       xyMap.startListening();
     } else if (motion === 'up_down') {
       zStrip = new SensorZStrip(
         sensorContainer,
-        assetUrl('/assets/motion_arrows/up_down.PNG'),
+        MOTION_META['up_down'].arrow,
         0.65,
       );
       zStrip.startListening();
     } else if (motion === 'press_down') {
       zStrip = new SensorZStrip(
         sensorContainer,
-        assetUrl('/assets/motion_arrows/press_down.PNG'),
+        MOTION_META['press_down'].arrow,
         0.65,
       );
       zStrip.startListening();
