@@ -359,6 +359,8 @@ function startLevel(page: HTMLElement): void {
 
   // ── Phase 1: Scan ────────────────────────────────────────────────────────
 
+  let sensorStarted = false;  // Track if sensor graph started for current step
+
   function advance(): void {
     if (currentStep >= runSteps.length) { finish(); return; }
 
@@ -389,6 +391,41 @@ function startLevel(page: HTMLElement): void {
       if (backendDriven) {
         backendNfcWrongHandler = () => flashWrongStamp();
         document.addEventListener('backend-nfc-wrong', backendNfcWrongHandler);
+
+        // Set up countdown listener EARLY — before NFC scan can complete
+        // (so we don't miss the first countdown message)
+        sensorStarted = false;
+        timerEl.textContent = '';
+        timerEl.style.removeProperty('--sweep');
+        timerEl.removeAttribute('data-state');
+
+        countdownHandler = ((e: Event) => {
+          const detail = (e as CustomEvent).detail as { seconds: number };
+          if (detail.seconds > 0) {
+            countdownFlash.flash(detail.seconds);
+            scanPromptEl.textContent = `Get ready… ${detail.seconds}`;
+            // Start sensor graph on first countdown tick
+            if (!sensorStarted) {
+              sensorStarted = true;
+              buildSensorGraph(step.motion);
+            }
+          } else {
+            countdownFlash.hide();
+            scanPromptEl.innerHTML = `Do the <strong>${meta.label}</strong> motion!`;
+            arrowArea.innerHTML = '';
+          }
+        });
+        document.addEventListener('play-countdown', countdownHandler);
+
+        backendFailHandler = ((e: Event) => {
+          const detail = (e as CustomEvent).detail as { motion: MotionType };
+          if (detail.motion === step.motion) {
+            flashWrongStamp();
+            xyMap?.reset();
+            zStrip?.reset();
+          }
+        });
+        document.addEventListener('backend-motion-failed', backendFailHandler);
       } else {
         // Space = simulate NFC scan
         keyHandler = (e: KeyboardEvent) => {
@@ -440,40 +477,6 @@ function startLevel(page: HTMLElement): void {
 
     if (backendDriven) {
       // ── Backend path ─────────────────────────────────────────────────────
-      timerEl.textContent = '';
-      timerEl.style.removeProperty('--sweep');
-      timerEl.removeAttribute('data-state');
-
-      let sensorStarted = false;
-
-      countdownHandler = ((e: Event) => {
-        const detail = (e as CustomEvent).detail as { seconds: number };
-        if (detail.seconds > 0) {
-          countdownFlash.flash(detail.seconds);
-          scanPromptEl.textContent = `Get ready… ${detail.seconds}`;
-          // Start sensor graph on first countdown tick
-          if (!sensorStarted) {
-            sensorStarted = true;
-            buildSensorGraph(step.motion);
-          }
-        } else {
-          countdownFlash.hide();
-          scanPromptEl.innerHTML = `Do the <strong>${meta.label}</strong> motion!`;
-          arrowArea.innerHTML = '';
-        }
-      });
-      document.addEventListener('play-countdown', countdownHandler);
-
-      backendFailHandler = ((e: Event) => {
-        const detail = (e as CustomEvent).detail as { motion: MotionType };
-        if (detail.motion === step.motion) {
-          flashWrongStamp();
-          xyMap?.reset();
-          zStrip?.reset();
-        }
-      });
-      document.addEventListener('backend-motion-failed', backendFailHandler);
-
       startMotionPhase(step, meta, true);
 
     } else {
@@ -582,5 +585,19 @@ function startLevel(page: HTMLElement): void {
       });
   }
 
-  advance();
+  // Connect WebSocket and wait for connection before starting game
+  if (useBackendRandom) {
+    // For backend-driven mode, wait for connection to establish
+    void playBridge.waitForConnection(10000).then((connected) => {
+      console.log('[Play] Backend connection ready:', connected);
+      if (connected) {
+        // Send "ready" signal so backend starts generating prompts
+        playBridge.sendReady();
+      }
+      advance();
+    });
+  } else {
+    // No backend — start immediately
+    advance();
+  }
 }

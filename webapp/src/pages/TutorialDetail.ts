@@ -152,7 +152,7 @@ export function createTutorialDetail(): HTMLElement {
   let lastSuccessAt = 0;
   const SUCCESS_STEP        = 1;
   const SUCCESS_DEBOUNCE_MS = 600;
-  const REQUIRED_SUCCESSES  = 2;
+  const REQUIRED_SUCCESSES  = 1;
 
   // Gate backend flow per page:
   // countdown/result events are ignored until this page gets its own prompt.
@@ -333,12 +333,15 @@ export function createTutorialDetail(): HTMLElement {
           }
 
           if (detail.seconds === 0) {
+            countdownFlash.hide();
             startMotionTimer(8, () => {
               stopMotionTimer();
               flashRadial(page, 'wrong');
               triggerWrong();
               resetFeedbackVisuals();
             });
+          } else {
+            countdownFlash.flash(detail.seconds);
           }
         });
         document.addEventListener('tutorial-countdown', countdownHandler);
@@ -383,7 +386,8 @@ export function createTutorialDetail(): HTMLElement {
 
             if (successCount >= REQUIRED_SUCCESSES) {
               resolved = true;
-              onSuccess(page);
+              flashRadial(page, 'success');
+              setTimeout(() => autoNavigateToNext(page), 500);
             } else {
               setTimeout(() => { cup?.reset(); xyMap?.reset(); zStrip?.reset(); }, 1200);
               flashRadial(page, 'success');
@@ -443,7 +447,8 @@ export function createTutorialDetail(): HTMLElement {
               updateCounter(page, successCount, REQUIRED_SUCCESSES);
               if (successCount >= REQUIRED_SUCCESSES) {
                 resolved = true;
-                onSuccess(page);
+                flashRadial(page, 'success');
+                setTimeout(() => autoNavigateToNext(page), 500);
               } else {
                 flashRadial(page, 'success');
                 setTimeout(() => {
@@ -659,6 +664,10 @@ function handleRedo(page: HTMLElement): void {
 
 function handleNext(page: HTMLElement): void {
   hidePopup(page);
+  autoNavigateToNext(page);
+}
+
+function autoNavigateToNext(page: HTMLElement): void {
   const currentMotion = (page.dataset.motion ?? 'grinding') as MotionType;
   const idx = TUTORIAL_ORDER.indexOf(currentMotion);
 

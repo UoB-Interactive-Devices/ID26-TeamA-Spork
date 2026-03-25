@@ -46,6 +46,32 @@ class PlayBridge {
     return this.connected;
   }
 
+  async waitForConnection(timeoutMs = 5000): Promise<boolean> {
+    if (this.connected) return true;
+
+    return new Promise<boolean>((resolve) => {
+      const timer = window.setTimeout(() => {
+        resolve(this.connected);
+      }, timeoutMs);
+
+      const cleanup = () => {
+        clearTimeout(timer);
+        if (this.ws) {
+          this.ws.removeEventListener('open', onOpen);
+        }
+      };
+
+      const onOpen = () => {
+        cleanup();
+        resolve(true);
+      };
+
+      if (this.ws) {
+        this.ws.addEventListener('open', onOpen);
+      }
+    });
+  }
+
   clearPromptQueue(): void {
     this.prompts = [];
   }

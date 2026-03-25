@@ -432,12 +432,12 @@ async def run_round(round_num: int, state_ref: list[str]) -> float:
         scores.append(action_score)
 
     total_score = sum(scores) / len(scores) if scores else 0.0
-    passed      = total_score >= PASS_THRESHOLD
+    passed      = bool(total_score >= PASS_THRESHOLD)
 
     await broadcast({
         "type":    "round_complete",
         "round":   round_num,
-        "score":   round(total_score, 3),
+        "score":   float(round(total_score, 3)),
         "passed":  passed,
         "actions": n_actions,
     })
@@ -451,6 +451,22 @@ async def run_round(round_num: int, state_ref: list[str]) -> float:
 
 async def game_loop(start_round: int, state_ref: list[str]) -> None:
     """Run rounds 1–3, waiting for frontend 'ready' between rounds."""
+    # Wait for frontend to be ready before starting
+    print("  Waiting for frontend 'ready'… (or press Enter to start)")
+    _ready_event.clear()
+    state_ref[0] = "waiting_ready"
+    
+    loop = asyncio.get_event_loop()
+    enter_task = loop.run_in_executor(None, input)
+    ready_task = asyncio.ensure_future(_ready_event.wait())
+    
+    done, pending = await asyncio.wait(
+        [asyncio.ensure_future(enter_task), ready_task],
+        return_when=asyncio.FIRST_COMPLETED,
+    )
+    for task in pending:
+        task.cancel()
+    
     # Initial calibration before any round
     print("\n  ── Initial calibration ──")
     await calibrate(2.0, state_ref)

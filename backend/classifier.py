@@ -31,7 +31,7 @@ from scipy.signal import butter, filtfilt
 SAMPLE_RATE         = 25        # Hz
 LOW_PASS_CUTOFF_HZ  = 3.0
 BASELINE_SAMPLES    = 50        # first 2 s at 25 Hz
-PASS_THRESHOLD      = 0.70      # score >= this = passed
+PASS_THRESHOLD      = 0.60      # score >= this = passed
 
 TEABAG_RHYTHM_LOW_HZ  = 1.5
 TEABAG_RHYTHM_HIGH_HZ = 3.5
@@ -262,7 +262,7 @@ def score_motion(
         return _null_result(expected_motion, tool_name, "signal_too_weak", feat)
 
     raw_score = _compute_score(feat, expected_motion, profile)
-    passed    = raw_score >= PASS_THRESHOLD
+    passed    = bool(raw_score >= PASS_THRESHOLD)
 
     return {
         "score":  round(raw_score, 3),
