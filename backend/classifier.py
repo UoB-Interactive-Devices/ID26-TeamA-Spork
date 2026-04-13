@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-classifier.py — Motion scorer for While It Steeps
+classifier.py — Motion scorer for Stir Things Up
 ==================================================
 Given a recorded buffer of (x, y, z) samples and an expected motion,
 returns a score 0.0–1.0 indicating how well the recording matches.

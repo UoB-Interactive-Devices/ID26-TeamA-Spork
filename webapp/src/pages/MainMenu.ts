@@ -26,17 +26,17 @@ export function createMainMenu(): HTMLElement {
     <!-- ── Main hero: logo top-left, illustration on table ── -->
     <div class="main-menu-hero" id="main-menu-hero">
       <header class="menu-header">
-        <div class="menu-logo-block" id="main-menu-logo" aria-label="While It Steeps logo">
+        <div class="menu-logo-block" id="main-menu-logo" aria-label="Stir Things Up logo">
           <img
             src="${assetUrl('/assets/logo.png')}"
-            alt="While It Steeps - motion brewing game logo"
+            alt="Stir Things Up - habit disrupting game logo"
             class="menu-logo-img"
             width="120"
             height="120"
           />
           <div class="menu-logo-text">
-            <h1>While It Steeps</h1>
-            <p class="subtitle">a motion brewing game for everyone</p>
+            <h1>Stir Things Up</h1>
+            <p class="subtitle">a habit disrupting game</p>
           </div>
         </div>
 
@@ -50,9 +50,9 @@ export function createMainMenu(): HTMLElement {
 
       <!-- ── Centered navigation buttons ── -->
       <nav class="menu-nav" id="menu-nav">
-        <button class="menu-nav-btn menu-nav-btn--play" data-action="play">Play</button>
-        <button class="menu-nav-btn menu-nav-btn--tutorial" data-action="tutorial">Tutorial</button>
-        <button class="menu-nav-btn menu-nav-btn--choreograph" data-action="choreograph">Choreograph</button>
+      <button class="menu-nav-btn menu-nav-btn--tutorial" data-action="tutorial">Tutorial</button>
+      <button class="menu-nav-btn menu-nav-btn--choreograph" data-action="choreograph">Choreograph Play</button>  
+      <button class="menu-nav-btn menu-nav-btn--play" data-action="play">Random Play</button>
       </nav>
     </div>
 

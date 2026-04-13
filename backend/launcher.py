@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-launcher.py — While It Steeps: Unified Bridge Launcher
+launcher.py: Unified Bridge Launcher
 =======================================================
 Auto-detects serial ports and manages both Play and Tutorial modes.
 The frontend signals which mode to run via "ui_state" WebSocket messages.
@@ -93,7 +93,7 @@ async def ws_handler(websocket):
 # ── Main Entry ─────────────────────────────────────────────────────────────
 
 async def main():
-    parser = argparse.ArgumentParser(description="While It Steeps — Unified Launcher")
+    parser = argparse.ArgumentParser(description="Stir Things Up — Unified Launcher")
     parser.add_argument("--mag-port", "-m", help="Magnetometer port")
     parser.add_argument("--nfc-port", "-n", help="NFC port")
     args = parser.parse_args()
@@ -102,7 +102,7 @@ async def main():
 
     print()
     print("  ═══════════════════════════════════════")
-    print("    While It Steeps — Unified Launcher")
+    print("    Stir Things Up — Unified Launcher")
     print("  ═══════════════════════════════════════")
     print(f"  Mag port : {mag_port}")
     print(f"  NFC port : {nfc_port}")

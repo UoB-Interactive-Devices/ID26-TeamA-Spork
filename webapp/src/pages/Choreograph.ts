@@ -21,6 +21,17 @@ const FALLBACK_TOOL = 'placeholder-tool';
 
 type RecordPhase = 'idle' | 'scan' | 'motion';
 
+const TOOL_ASSETS: Record<string, string> = {
+  'Coffee Grinder': assetUrl('/assets/front_grinder.PNG'),
+  Kettle: assetUrl('/assets/front_milk.PNG'),
+  'Coffee Press': assetUrl('/assets/front_press.PNG'),
+  Sieve: assetUrl('/assets/front_sieve.PNG'),
+  Spork: assetUrl('/assets/front_spork.png'),
+  'Tea Bag': assetUrl('/assets/front_tea.PNG'),
+  Tongs: assetUrl('/assets/front_tongs.png'),
+  Whisk: assetUrl('/assets/front_whisk.PNG'),
+};
+
 export function createChoreograph(): HTMLElement {
   const page = document.createElement('div');
   page.id = 'choreograph';

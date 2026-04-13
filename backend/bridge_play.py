@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-bridge_play.py — While It Steeps: Play Bridge Controller
+bridge_play.py: Play Bridge Controller
 ========================================================
 Drives the main gameplay loop for Play.ts.
 Refactored to be a modular controller used by launcher.py.
