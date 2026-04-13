@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-bridge_tutorial.py — While It Steeps: Tutorial Bridge Controller
+bridge_tutorial.py: Tutorial Bridge Controller
 ================================================================
 Drives the interactive tutorial sequence for TutorialDetail.ts.
 Refactored to be a modular controller used by launcher.py.

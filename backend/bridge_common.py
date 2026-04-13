@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-bridge_common.py — While It Steeps: Shared Bridge Utilities
+bridge_common.py: Shared Bridge Utilities
 ============================================================
 Shared serial readers, WebSocket broadcaster, and sensor state.
 Used by launcher.py, bridge_play.py, and bridge_tutorial.py.

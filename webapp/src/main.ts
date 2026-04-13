@@ -24,7 +24,7 @@ function init(): void {
   const savedTheme = localStorage.getItem('spork-theme') || 'dark';
   document.documentElement.setAttribute('data-theme', savedTheme);
 
-  console.log('While It Steeps — Initializing…');
+  console.log('Stir Things Up — Initializing…');
 
   const app = document.getElementById('app')!;
 
@@ -239,7 +239,7 @@ function init(): void {
     }
   });
 
-  console.log('☕ While It Steeps — Ready!');
+  console.log('☕ Stir Things Up — Ready!');
 }
 
 init();

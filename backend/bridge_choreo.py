@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-bridge_choreo.py — While It Steeps: Choreograph Bridge Controller
+bridge_choreo.py: Choreograph Bridge Controller
 =================================================================
 Drives the free-form recording sequence for Choreograph.ts.
 Allows scanning any tool and performing any motion.

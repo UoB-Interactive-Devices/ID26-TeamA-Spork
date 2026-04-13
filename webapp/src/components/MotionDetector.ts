@@ -1,5 +1,5 @@
 /**
- * MotionDetector.ts — WebSocket client for While It Steeps
+ * MotionDetector.ts — WebSocket client for game
  * =========================================================
  * Connects to ws://localhost:8765 (bridge_play.py or bridge_tutorial.py)
  * and converts every incoming message into a CustomEvent on `document`.
